@@ -1,6 +1,7 @@
 services:
   auth_db:
     image: mongo
+    container_name: auth_db
     ports:
       - 27017:27017
     environment:
