@@ -51,8 +51,3 @@ async def auth(
         raise ForbiddenException
     add_response_headers(response, user)
     return Message(message='Authentication successful')
-
-
-@router.post('/post')
-async def list_users(db: AsyncIOMotorDatabase = Depends(get_db)) -> list[UserInDB]:
-    return await db.users.find().to_list()
