@@ -4,12 +4,12 @@ from passlib.context import CryptContext
 
 SECRET_KEY = os.environ['SECRET_KEY']
 ALGORITHM = os.environ['ALGORITHM']
-ACCESS_TOKEN_EXPIRE_MINUTES = float(os.environ['ACCESS_TOKEN_EXPIRE_MINUTES'])
+ACCESS_TOKEN_EXPIRE_MINUTES = float(os.getenv('ACCESS_TOKEN_EXPIRE_MINUTES', 30))
 
-MONGO_DATABASE = os.environ['MONGO_DATABASE']
+MONGO_DATABASE = os.getenv('MONGO_DATABASE', 'auth_db')
 
-MONGO_HOST = os.environ['MONGO_HOST']
-MONGO_PORT = os.environ['MONGO_PORT']
+MONGO_HOST = os.getenv('MONGO_HOST', 'auth_db')
+MONGO_PORT = os.getenv('MONGO_PORT', '27017')
 MONGO_USERNAME = os.environ['MONGO_INITDB_ROOT_USERNAME']
 MONGO_PASSWORD = os.environ['MONGO_INITDB_ROOT_PASSWORD']
 
