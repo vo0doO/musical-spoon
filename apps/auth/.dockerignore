@@ -1,0 +1,18 @@
+# Исключение всех скрытых файлов и каталогов кроме .env
+**/.*
+!.env
+
+# Исключение всех pyc-файлов
+**/*.pyc
+
+# Исключение директорий __pycache__
+__pycache__
+
+# Исключение конкретных файлов
+Dockerfile
+docker-compose.yml
+Makefile
+README.md
+
+**/*.egg-info
+**/.*cache*
