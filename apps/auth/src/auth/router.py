@@ -5,8 +5,8 @@ from motor.motor_asyncio import AsyncIOMotorDatabase
 
 from auth.dependencies import (
     add_response_headers,
-    authenticate_user,
-    create_access_token,
+    auth_user,
+    create_token,
     create_user,
     get_db,
     get_token_from_header,
@@ -22,11 +22,11 @@ router = APIRouter(tags=['Auth'])
 async def signin(
     response: Response, form_data: Annotated[UserLogin, Form()], db: AsyncIOMotorDatabase = Depends(get_db)
 ) -> Token:
-    user: UserInDB = await authenticate_user(form_data.email, form_data.password, db)  # type: ignore
+    user: UserInDB = await auth_user(form_data.email, form_data.password, db)  # type: ignore
     if not user:
         raise CredentailsException
     add_response_headers(response, user)
-    return create_access_token({'sub': user.email, 'username': user.username})
+    return create_token({'sub': user.email, 'username': user.username})
 
 
 @router.post('/signup')
@@ -37,7 +37,7 @@ async def signup(
     if not user:
         raise EmailAlreadyExistsException
     add_response_headers(response, user)
-    return create_access_token({'sub': user.email, 'username': user.username})
+    return create_token({'sub': user.email, 'username': user.username})
 
 
 @router.post('/auth')
