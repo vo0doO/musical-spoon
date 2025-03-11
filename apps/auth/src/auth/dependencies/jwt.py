@@ -17,5 +17,8 @@ def create_token(data: dict) -> Token:
     return Token(access_token=encoded_jwt, token_type='bearer')
 
 
-def decode_token(token: str) -> dict | InvalidTokenError:
-    return jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+def decode_token(token: str) -> dict | None:
+    try:
+        return jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+    except InvalidTokenError:
+        return None
