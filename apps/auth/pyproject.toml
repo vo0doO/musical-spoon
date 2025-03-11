@@ -28,6 +28,12 @@ dev = [
 
 [tool.ruff]
 line-length = 120
+select=[
+    "PT",
+    "FAST",
+    "ASYNC",
+]
+
 
 [tool.ruff.format]
 quote-style = "single"
