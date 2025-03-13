@@ -5,6 +5,9 @@ services:
     restart: always
     build:
       context: apps/auth
+    depends_on:
+      auth_db:
+        condition: service_started
     working_dir: /app
     ports:
       - 8080:8080
@@ -19,6 +22,8 @@ services:
       options:
         max-size: "10m"
         max-file: "5"
+    networks:
+      - auth
 
   auth_db:
     image: mongo
@@ -35,6 +40,13 @@ services:
       options:
         max-size: "10m"
         max-file: "5"
+    networks:
+      - auth
 
 volumes:
   auth_db:
+
+networks:
+  auth:
+    name: auth
+    driver: bridge
