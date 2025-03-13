@@ -1,4 +1,20 @@
 services:
+  reverse-proxy:
+    container_name: reverse-proxy
+    image: traefik:v3.3
+    restart: always
+    command:
+      - --config.file=/etc/traefik/traefik.yml
+    ports:
+      - "80:80"
+      - "8080:8080"
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+      - "./core/traefik/traefik.yml:/etc/traefik/traefik.yml:ro"
+      - "./core/traefik/dinamic-config.yml:/etc/traefik/dynamic-config.yml:ro"
+    networks:
+      - musical-spoon
+
   auth:
     container_name: auth
     image: auth
@@ -9,8 +25,6 @@ services:
       auth_db:
         condition: service_started
     working_dir: /app
-    ports:
-      - 8080:8080
     environment:
       SECRET_KEY: ${SECRET_KEY}
       ALGORITHM: ${ALGORITHM}
@@ -24,12 +38,11 @@ services:
         max-file: "5"
     networks:
       - auth
+      - musical-spoon
 
   auth_db:
     image: mongo
     container_name: auth_db
-    ports:
-      - 27017:27017
     environment:
       MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME}
       MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD}
@@ -49,4 +62,7 @@ volumes:
 networks:
   auth:
     name: auth
+    driver: bridge
+  musical-spoon:
+    name: musical-spoon
     driver: bridge
