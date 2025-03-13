@@ -4,14 +4,16 @@ services:
     image: traefik:v3.3
     restart: always
     command:
-      - --config.file=/etc/traefik/traefik.yml
+      - --log.level=DEBUG
+      - --api.insecure=true
+      - --providers.docker=true
+      - --providers.docker.exposedbydefault=false
+      - --entryPoints.web.address=:80
     ports:
-      - "80:80"
-      - "8080:8080"
+      - 80:80
+      - 8080:8080
     volumes:
-      - "/var/run/docker.sock:/var/run/docker.sock:ro"
-      - "./core/traefik/traefik.yml:/etc/traefik/traefik.yml:ro"
-      - "./core/traefik/dinamic-config.yml:/etc/traefik/dynamic-config.yml:ro"
+      - /var/run/docker.sock:/var/run/docker.sock:ro
     networks:
       - musical-spoon
 
@@ -37,8 +39,13 @@ services:
         max-size: "10m"
         max-file: "5"
     networks:
-      - auth
       - musical-spoon
+      - auth
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.auth.rule=Host(`auth.localhost`)
+      - traefik.http.routers.auth.entryPoints=web
+      - traefik.docker.network=musical-spoon
 
   auth_db:
     image: mongo
