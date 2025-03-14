@@ -1,13 +1,33 @@
 services:
+  reverse-proxy:
+    container_name: reverse-proxy
+    image: traefik:v3.3
+    restart: always
+    command:
+      - --accesslog=true
+      - --log.level=DEBUG
+      - --api.insecure=true
+      - --providers.docker=true
+      - --providers.docker.exposedbydefault=false
+      - --entryPoints.web.address=:80
+    ports:
+      - 80:80
+      - 8080:8080
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks:
+      - musical-spoon
+
   auth:
     container_name: auth
     image: auth
     restart: always
     build:
       context: apps/auth
+    depends_on:
+      auth_db:
+        condition: service_started
     working_dir: /app
-    ports:
-      - 8080:8080
     environment:
       SECRET_KEY: ${SECRET_KEY}
       ALGORITHM: ${ALGORITHM}
@@ -19,12 +39,20 @@ services:
       options:
         max-size: "10m"
         max-file: "5"
+    networks:
+      - musical-spoon
+      - auth
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.auth.rule=Host(`auth.localhost`)
+      - traefik.http.routers.auth.entryPoints=web
+      - traefik.http.middlewares.forward-auth.forwardauth.address=http://auth/auth
+      - traefik.http.middlewares.forward-auth.forwardauth.authResponseHeaders=X-User-Role
+      - traefik.docker.network=musical-spoon
 
   auth_db:
     image: mongo
     container_name: auth_db
-    ports:
-      - 27017:27017
     environment:
       MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME}
       MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD}
@@ -35,6 +63,16 @@ services:
       options:
         max-size: "10m"
         max-file: "5"
+    networks:
+      - auth
 
 volumes:
   auth_db:
+
+networks:
+  auth:
+    name: auth
+    driver: bridge
+  musical-spoon:
+    name: musical-spoon
+    driver: bridge

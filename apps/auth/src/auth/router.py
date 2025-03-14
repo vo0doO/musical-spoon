@@ -40,7 +40,7 @@ async def signup(
     return create_token({'sub': user.email, 'username': user.username})
 
 
-@router.post('/auth')
+@router.get('/auth')
 async def auth(
     response: Response,
     token: Annotated[str, Depends(get_token_from_header)],
