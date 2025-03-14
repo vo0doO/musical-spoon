@@ -32,5 +32,5 @@ async def create_user(data: UserCreate, db: AsyncIOMotorDatabase) -> UserInDB | 
     hashed_password = pwd_context.hash(data.password)
     user = UserInDB(email=data.email, username=data.username, hashed_password=hashed_password)
 
-    await db.users.insert_one(user.dict())
+    await db.users.insert_one(user.model_dump())
     return user

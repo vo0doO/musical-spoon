@@ -20,7 +20,7 @@ router = APIRouter(tags=['Auth'])
 
 @router.post('/signin')
 async def signin(
-    response: Response, form_data: Annotated[UserLogin, Form()], db: AsyncIOMotorDatabase = Depends(get_db)
+    response: Response, form_data: Annotated[UserLogin, Form()], db: Annotated[AsyncIOMotorDatabase, Depends(get_db)]
 ) -> Token:
     user: UserInDB = await auth_user(form_data.email, form_data.password, db)  # type: ignore
     if not user:
@@ -31,7 +31,7 @@ async def signin(
 
 @router.post('/signup')
 async def signup(
-    response: Response, form_data: Annotated[UserCreate, Form()], db: AsyncIOMotorDatabase = Depends(get_db)
+    response: Response, form_data: Annotated[UserCreate, Form()], db: Annotated[AsyncIOMotorDatabase, Depends(get_db)]
 ) -> Token:
     user: UserInDB = await create_user(form_data, db)  # type: ignore
     if not user:
@@ -44,7 +44,7 @@ async def signup(
 async def auth(
     response: Response,
     token: Annotated[str, Depends(get_token_from_header)],
-    db: AsyncIOMotorDatabase = Depends(get_db),
+    db: Annotated[AsyncIOMotorDatabase, Depends(get_db)],
 ) -> Message:
     user: UserInDB = await verify_token(token, db)  # type: ignore
     if not user:
