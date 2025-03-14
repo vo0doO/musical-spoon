@@ -4,6 +4,7 @@ services:
     image: traefik:v3.3
     restart: always
     command:
+      - --accesslog=true
       - --log.level=DEBUG
       - --api.insecure=true
       - --providers.docker=true
@@ -45,6 +46,8 @@ services:
       - traefik.enable=true
       - traefik.http.routers.auth.rule=Host(`auth.localhost`)
       - traefik.http.routers.auth.entryPoints=web
+      - traefik.http.middlewares.forward-auth.forwardauth.address=http://auth/auth
+      - traefik.http.middlewares.forward-auth.forwardauth.authResponseHeaders=X-User-Role
       - traefik.docker.network=musical-spoon
 
   auth_db:
