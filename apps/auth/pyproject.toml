@@ -28,14 +28,15 @@ dev=[
 
 [tool.ruff]
 line-length=120
-select=[
-    "PT",
-    "FAST",
-    "ASYNC",
-]
 
 [tool.ruff.format]
 quote-style="single"
+
+[tool.ruff.lint]
+extend-select = [
+    "FAST",
+    "ASYNC",
+]
 
 [tool.pytest.ini_options]
 asyncio_mode="auto"
