@@ -1,37 +1,28 @@
-[build-system]
-build-backend = "poetry.core.masonry.api"
-requires = ["poetry-core"]
-
-[tool.poetry]
-authors = [""]
-description = ""
-name = ""
-readme = "README.md"
-version = ""
-
-[tool.poetry.dependencies]
-
-
-[tool.poetry.group.dev.dependencies]
-
-[tool.pytest.ini_options]
-DJANGO_SETTINGS_MODULE = "core.settings"
-addopts = "--reuse-db"
-env = [
-
+[project]
+name="events"
+version="0.1.0"
+description="Events microservice"
+readme="README.md"
+requires-python=">=3.13"
+dependencies=[
+    "fastapi>=0.115.11",
+    "uvicorn>=0.34.0",
 ]
-filterwarnings = [
 
+[dependency-groups]
+dev=[
+    "mypy>=1.15.0",
+    "ruff>=0.9.9",
 ]
-markers = [
 
+[tool.ruff]
+line-length=120
+
+[tool.ruff.format]
+quote-style="single"
+
+[tool.ruff.lint]
+extend-select = [
+    "FAST",
+    "ASYNC",
 ]
-python_files = "test*.py"
-
-[tool.tomlsort]
-all = true
-in_place = true
-sort_first = ["tool.poetry"]
-spaces_before_inline_comment = 2
-spaces_indent_inline_array = 4
-trailing_comma_inline_array = true
