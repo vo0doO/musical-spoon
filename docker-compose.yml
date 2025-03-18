@@ -67,14 +67,43 @@ services:
     networks:
       - auth
 
+  events:
+    container_name: events
+    image: events
+    restart: always
+    build:
+      context: apps/events
+    depends_on:
+      events_db:
+        condition: service_started
+    working_dir: /app
+    environment:
+      - POSTGRES_USER=${EVENTS_POSTGRES_USER}
+      - POSTGRES_PASSWORD=${EVENTS_POSTGRES_PASSWORD}
+      - POSTGRES_DB=${EVENTS_POSTGRES_DB}
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"
+    networks:
+      - musical-spoon
+      - events
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.events.rule=Host(`events.localhost`)
+      - traefik.http.routers.events.entryPoints=web
+      - traefik.http.routers.events.middlewares=forward-auth
+      - traefik.docker.network=musical-spoon
+
   events_db:
     image: postgres:latest
     container_name: events_db
     restart: always
     environment:
-      - POSTGRES_USER=${POSTGRES_USER}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
-      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_USER=${EVENTS_POSTGRES_USER}
+      - POSTGRES_PASSWORD=${EVENTS_POSTGRES_PASSWORD}
+      - POSTGRES_DB=${EVENTS_POSTGRES_DB}
     volumes:
       - events_db:/var/lib/postgresql/data
     logging:
