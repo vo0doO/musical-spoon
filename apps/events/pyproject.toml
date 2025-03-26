@@ -5,14 +5,22 @@ description="Events microservice"
 readme="README.md"
 requires-python=">=3.13"
 dependencies=[
+    "asyncpg>=0.30.0",
     "fastapi>=0.115.11",
+    "greenlet>=3.1.1",
+    "pytest-asyncio>=0.26.0",
+    "sqlmodel>=0.0.24",
     "uvicorn>=0.34.0",
 ]
 
 [dependency-groups]
 dev=[
     "mypy>=1.15.0",
+    "pytest>=8.3.5",
+    "pytest-icdiff>=0.9",
     "ruff>=0.9.9",
+    "testcontainers>=4.9.2",
+    "yarl>=1.18.3",
 ]
 
 [tool.ruff]
@@ -25,4 +33,17 @@ quote-style="single"
 extend-select = [
     "FAST",
     "ASYNC",
+    "PT",
+]
+
+[tool.pytest.ini_options]
+asyncio_mode="auto"
+asyncio_default_fixture_loop_scope="function"
+asyncio_default_test_loop_scope="function"
+markers=[
+    "unit: marks tests as unit tests",
+    "integration: marks tests as integration tests",
+]
+testpaths=[
+    "tests"
 ]
