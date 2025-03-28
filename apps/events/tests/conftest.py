@@ -28,7 +28,7 @@ def data_for_fake_event() -> dict:
         'name': 'Fake Event',
         'description': 'Fake Event',
         'event_date': datetime.date.today(),
-        'available_tikets': 10,
+        'available_tickets': 10,
         'ticket_price': 1.15,
     }
 

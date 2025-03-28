@@ -7,8 +7,8 @@ pytestmark = pytest.mark.integration
 
 def get_insert_event_query(returning_id=False):
     query = """
-        INSERT INTO event (name, description, event_date, available_tikets, ticket_price)
-        VALUES (:name, :description, :event_date, :available_tikets, :ticket_price);
+        INSERT INTO event (name, description, event_date, available_tickets, ticket_price)
+        VALUES (:name, :description, :event_date, :available_tickets, :ticket_price);
     """
 
     if returning_id:
@@ -74,14 +74,14 @@ async def test_can_insert_event(postgres_session: AsyncSession, data_for_fake_ev
 
 
 @pytest.mark.asyncio
-async def test_cant_insert_event_with_negative_available_tikets(
+async def test_cant_insert_event_with_negative_available_tickets(
     postgres_session: AsyncSession, data_for_fake_event: dict
 ):
     query = get_insert_event_query()
 
-    data_for_fake_event['available_tikets'] = -5
+    data_for_fake_event['available_tickets'] = -5
 
-    with pytest.raises(Exception, match='check_available_tikets_non_negative'):
+    with pytest.raises(Exception, match='check_available_tickets_non_negative'):
         await postgres_session.execute(query, data_for_fake_event)
 
 

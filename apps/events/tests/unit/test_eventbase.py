@@ -16,7 +16,7 @@ def test_can_create_eventbase(data_for_fake_event):
     assert event.name == data_for_fake_event['name']
     assert event.description == data_for_fake_event['description']
     assert event.event_date == data_for_fake_event['event_date']
-    assert event.available_tikets == data_for_fake_event['available_tikets']
+    assert event.available_tickets == data_for_fake_event['available_tickets']
     assert float(event.ticket_price) == float(data_for_fake_event['ticket_price'])
 
 
@@ -40,9 +40,9 @@ def test_cant_create_eventbase_with_bad_price_value(data_for_fake_event, bad_pri
         EventBase(**data_for_fake_event)
 
 
-@pytest.mark.parametrize('bad_available_tikets', [-2, 1.5])
-def test_cant_create_eventbase_with_bad_available_tikets_value(data_for_fake_event, bad_available_tikets):
-    data_for_fake_event['available_tikets'] = bad_available_tikets
+@pytest.mark.parametrize('bad_available_tickets', [-2, 1.5])
+def test_cant_create_eventbase_with_bad_available_tickets_value(data_for_fake_event, bad_available_tickets):
+    data_for_fake_event['available_tickets'] = bad_available_tickets
 
     with pytest.raises(
         ValidationError, match='Input should be greater than or equal to 0|Input should be a valid integer'
