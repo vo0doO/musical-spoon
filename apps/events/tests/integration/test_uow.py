@@ -1,17 +1,10 @@
 import pytest
-from sqlalchemy import text
 
 from events.domain.model import Event
 from events.service_layer.unit_of_work import SqlAlchemyUnitOfWork
+from tests.conftest import select_event_by_name
 
 pytestmark = pytest.mark.integration
-
-
-async def select_event_by_name(uow: SqlAlchemyUnitOfWork, name):
-    async with uow:
-        result = await uow.session.execute(text('SELECT * FROM event WHERE name = :name'), dict(name=name))
-        event = result.fetchone()
-        return event._asdict() if event else event
 
 
 @pytest.mark.asyncio

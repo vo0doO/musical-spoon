@@ -4,7 +4,7 @@ from collections.abc import AsyncGenerator, Generator
 import pytest
 import yarl
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, async_sessionmaker, create_async_engine
-from sqlmodel import SQLModel
+from sqlmodel import SQLModel, text
 from testcontainers.postgres import PostgresContainer  # type: ignore
 
 from events.service_layer.unit_of_work import SqlAlchemyUnitOfWork
@@ -20,6 +20,13 @@ async def create_database(engine):
 async def drop_database(engine):
     async with engine.begin() as conn:
         await conn.run_sync(SQLModel.metadata.drop_all)
+
+
+async def select_event_by_name(uow: SqlAlchemyUnitOfWork, name):
+    async with uow:
+        result = await uow.session.execute(text('SELECT * FROM event WHERE name = :name'), dict(name=name))
+        event = result.fetchone()
+        return event._asdict() if event else event
 
 
 @pytest.fixture
