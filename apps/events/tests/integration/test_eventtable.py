@@ -35,12 +35,12 @@ async def test_event_have_btree_idx_on_event_date(postgres_session: AsyncSession
 
 
 @pytest.mark.asyncio
-async def test_autoincrement_id(postgres_session: AsyncSession, data_for_fake_event: dict):
+async def test_autoincrement_id(postgres_session: AsyncSession, fake_event: dict):
     query = get_insert_event_query(returning_id=True)
 
-    result_1 = await postgres_session.execute(query, data_for_fake_event)
+    result_1 = await postgres_session.execute(query, fake_event)
     id_1 = result_1.scalar()
-    result_2 = await postgres_session.execute(query, data_for_fake_event)
+    result_2 = await postgres_session.execute(query, fake_event)
     id_2 = result_2.scalar()
 
     assert id_2 is not None
@@ -56,10 +56,10 @@ async def test_autoincrement_id(postgres_session: AsyncSession, data_for_fake_ev
 
 
 @pytest.mark.asyncio
-async def test_can_insert_event(postgres_session: AsyncSession, data_for_fake_event: dict):
+async def test_can_insert_event(postgres_session: AsyncSession, fake_event: dict):
     query = get_insert_event_query(returning_id=True)
 
-    result = await postgres_session.execute(query, data_for_fake_event)
+    result = await postgres_session.execute(query, fake_event)
     event_id = result.scalar()
 
     assert event_id is not None
@@ -69,27 +69,25 @@ async def test_can_insert_event(postgres_session: AsyncSession, data_for_fake_ev
     event = result.fetchone()._asdict()
 
     assert event is not None
-    assert event['name'] == data_for_fake_event['name']
-    assert event['ticket_price'] == data_for_fake_event['ticket_price']
+    assert event['name'] == fake_event['name']
+    assert event['ticket_price'] == fake_event['ticket_price']
 
 
 @pytest.mark.asyncio
-async def test_cant_insert_event_with_negative_available_tickets(
-    postgres_session: AsyncSession, data_for_fake_event: dict
-):
+async def test_cant_insert_event_with_negative_available_tickets(postgres_session: AsyncSession, fake_event: dict):
     query = get_insert_event_query()
 
-    data_for_fake_event['available_tickets'] = -5
+    fake_event['available_tickets'] = -5
 
     with pytest.raises(Exception, match='check_available_tickets_non_negative'):
-        await postgres_session.execute(query, data_for_fake_event)
+        await postgres_session.execute(query, fake_event)
 
 
 @pytest.mark.asyncio
-async def test_cant_insert_event_with_negative_ticket_price(postgres_session: AsyncSession, data_for_fake_event: dict):
+async def test_cant_insert_event_with_negative_ticket_price(postgres_session: AsyncSession, fake_event: dict):
     query = get_insert_event_query()
 
-    data_for_fake_event['ticket_price'] = -5
+    fake_event['ticket_price'] = -5
 
     with pytest.raises(Exception, match='check_ticket_price_positive'):
-        await postgres_session.execute(query, data_for_fake_event)
+        await postgres_session.execute(query, fake_event)

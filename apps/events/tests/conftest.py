@@ -23,7 +23,7 @@ async def drop_database(engine):
 
 
 @pytest.fixture
-def data_for_fake_event() -> dict:
+def fake_event() -> dict:
     return {
         'name': 'Fake Event',
         'description': 'Fake Event',
