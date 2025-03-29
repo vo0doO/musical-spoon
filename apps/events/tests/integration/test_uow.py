@@ -7,7 +7,6 @@ from tests.conftest import select_event_by_name
 pytestmark = pytest.mark.integration
 
 
-@pytest.mark.asyncio
 async def test_can_create_event(uow: SqlAlchemyUnitOfWork, fake_event: dict):
     async with uow:
         event = Event(**fake_event)
@@ -21,7 +20,6 @@ async def test_can_create_event(uow: SqlAlchemyUnitOfWork, fake_event: dict):
     assert event['name'] == event_name
 
 
-@pytest.mark.asyncio
 async def test_rollback_uncommited_work_by_default(uow: SqlAlchemyUnitOfWork, fake_event: dict):
     async with uow:
         event = Event(**fake_event)

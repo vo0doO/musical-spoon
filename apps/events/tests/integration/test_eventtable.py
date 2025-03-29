@@ -17,7 +17,6 @@ def get_insert_event_query(returning_id=False):
     return text(query)
 
 
-@pytest.mark.asyncio
 async def test_event_have_btree_idx_on_event_date(postgres_session: AsyncSession):
     query = text("""
         SELECT a.amname AS index_type
@@ -34,7 +33,6 @@ async def test_event_have_btree_idx_on_event_date(postgres_session: AsyncSession
     assert index_type == 'btree'
 
 
-@pytest.mark.asyncio
 async def test_autoincrement_id(postgres_session: AsyncSession, fake_event: dict):
     query = get_insert_event_query(returning_id=True)
 
@@ -55,7 +53,6 @@ async def test_autoincrement_id(postgres_session: AsyncSession, fake_event: dict
     assert ids == [id_1, id_2], 'The order of the ID in the database is incorrect'
 
 
-@pytest.mark.asyncio
 async def test_can_insert_event(postgres_session: AsyncSession, fake_event: dict):
     query = get_insert_event_query(returning_id=True)
 
@@ -73,7 +70,6 @@ async def test_can_insert_event(postgres_session: AsyncSession, fake_event: dict
     assert event['ticket_price'] == fake_event['ticket_price']
 
 
-@pytest.mark.asyncio
 async def test_cant_insert_event_with_negative_available_tickets(postgres_session: AsyncSession, fake_event: dict):
     query = get_insert_event_query()
 
@@ -83,7 +79,6 @@ async def test_cant_insert_event_with_negative_available_tickets(postgres_sessio
         await postgres_session.execute(query, fake_event)
 
 
-@pytest.mark.asyncio
 async def test_cant_insert_event_with_negative_ticket_price(postgres_session: AsyncSession, fake_event: dict):
     query = get_insert_event_query()
 
