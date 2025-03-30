@@ -4,6 +4,8 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 
 class AbscractUnitOfWork(Protocol, AsyncContextManager):
+    session: AsyncSession
+
     async def commit(self):
         raise NotImplementedError
 
