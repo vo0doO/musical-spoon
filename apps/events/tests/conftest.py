@@ -7,6 +7,9 @@ from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, async_sessionmaker
 from sqlmodel import SQLModel, text
 from testcontainers.postgres import PostgresContainer  # type: ignore
 
+from events.adapters.eventpublisher import FakeEventPublisher
+
+from events.service_layer.messagebus import MessageBus
 from events.service_layer.unit_of_work import SqlAlchemyUnitOfWork
 
 
@@ -36,7 +39,7 @@ def fake_event() -> dict:
         'description': 'Fake Event',
         'event_date': datetime.date.today(),
         'available_tickets': 10,
-        'ticket_price': 1.15,
+        'ticket_price': 3000.15,
     }
 
 
@@ -86,6 +89,13 @@ async def sqlite_session_factory(sqlite_engine: AsyncEngine) -> AsyncGenerator[a
 
 
 @pytest.fixture
-async def uow(sqlite_session_factory: async_sessionmaker[AsyncSession]) -> AsyncGenerator[SqlAlchemyUnitOfWork]:
+def uow(sqlite_session_factory: async_sessionmaker[AsyncSession]) -> SqlAlchemyUnitOfWork:
     uow = SqlAlchemyUnitOfWork(sqlite_session_factory)
     return uow
+
+
+@pytest.fixture
+def bus(uow: SqlAlchemyUnitOfWork) -> MessageBus:
+    publish = FakeEventPublisher()
+    messagebus = MessageBus(uow, publish)
+    return messagebus
