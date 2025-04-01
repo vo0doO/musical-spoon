@@ -2,7 +2,7 @@ from collections.abc import Callable
 
 from events.adapters.eventpublisher import AbstractEventPublisher
 from events.domain import commands, events, model
-from events.service_layer.unit_of_work import AbscractUnitOfWork
+from events.service_layer.unit_of_work import AbstractUnitOfWork
 
 
 class InvalidId(Exception):
@@ -10,7 +10,7 @@ class InvalidId(Exception):
 
 
 async def create_event(
-    cmd: commands.CreateEvent, uow: AbscractUnitOfWork, publish: AbstractEventPublisher
+    cmd: commands.CreateEvent, uow: AbstractUnitOfWork, publish: AbstractEventPublisher
 ) -> model.Event:
     async with uow:
         event = model.Event(**cmd.model_dump())
@@ -19,7 +19,7 @@ async def create_event(
         return event
 
 
-async def update_event(cmd: commands.UpdateEvent, uow: AbscractUnitOfWork, publish: AbstractEventPublisher) -> None:
+async def update_event(cmd: commands.UpdateEvent, uow: AbstractUnitOfWork, publish: AbstractEventPublisher) -> None:
     async with uow:
         event = await uow.session.get(model.Event, cmd.id)
         if not event:
@@ -45,7 +45,7 @@ async def update_event(cmd: commands.UpdateEvent, uow: AbscractUnitOfWork, publi
         await uow.commit()
 
 
-async def delete_event(cmd: commands.DeleteEvent, uow: AbscractUnitOfWork, publish: AbstractEventPublisher) -> None:
+async def delete_event(cmd: commands.DeleteEvent, uow: AbstractUnitOfWork, publish: AbstractEventPublisher) -> None:
     async with uow:
         event = await uow.session.get(model.Event, cmd.id)
         if not event:

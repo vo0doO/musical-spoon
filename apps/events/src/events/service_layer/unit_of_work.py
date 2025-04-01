@@ -3,7 +3,7 @@ from typing import AsyncContextManager, Protocol
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 
-class AbscractUnitOfWork(Protocol, AsyncContextManager):
+class AbstractUnitOfWork(Protocol, AsyncContextManager):
     session: AsyncSession
 
     async def commit(self):
@@ -17,7 +17,7 @@ class SqlAlchemyUnitOfWork:
     def __init__(self, session_factory: async_sessionmaker[AsyncSession]):
         self.session_factory = session_factory
 
-    async def __aenter__(self) -> AbscractUnitOfWork:
+    async def __aenter__(self) -> AbstractUnitOfWork:
         self.session = self.session_factory()
         return self
 

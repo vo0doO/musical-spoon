@@ -4,7 +4,7 @@ from typing import Any
 from events.adapters.eventpublisher import AbstractEventPublisher
 from events.domain import commands, events
 from events.service_layer.handlers import HANDLERS
-from events.service_layer.unit_of_work import AbscractUnitOfWork
+from events.service_layer.unit_of_work import AbstractUnitOfWork
 
 logger = logging.getLogger(__name__)
 
@@ -12,7 +12,7 @@ type Message = commands.Command | events.Event
 
 
 class MessageBus:
-    def __init__(self, uow: AbscractUnitOfWork, publish: AbstractEventPublisher):
+    def __init__(self, uow: AbstractUnitOfWork, publish: AbstractEventPublisher):
         self.uow = uow
         self.publish = publish
 
