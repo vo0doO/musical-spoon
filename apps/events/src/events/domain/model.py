@@ -1,6 +1,6 @@
 from datetime import date
 
-from pydantic import condecimal, field_validator
+from pydantic import condecimal, field_serializer, field_validator
 from sqlmodel import CheckConstraint, Field, Index, SQLModel
 
 
@@ -18,6 +18,10 @@ class EventBase(SQLModel):
         if value < date.today():
             raise ValueError('The date of the event cannot be the previous one')
         return value
+
+    @field_serializer('ticket_price')
+    def serialize_ticket_price(self, value: condecimal(decimal_places=2)):  # type: ignore
+        return round(float(value), 2)
 
 
 class Event(EventBase, table=True):

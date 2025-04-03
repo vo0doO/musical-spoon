@@ -1,14 +1,18 @@
-import datetime
 from collections.abc import AsyncGenerator, Generator
+from datetime import date, timedelta
+from decimal import Decimal
 
 import pytest
 import yarl
+from fastapi.testclient import TestClient
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, async_sessionmaker, create_async_engine
+from sqlalchemy.pool import NullPool
 from sqlmodel import SQLModel, text
 from testcontainers.postgres import PostgresContainer  # type: ignore
 
 from events.adapters.eventpublisher import FakeEventPublisher
-
+from events.domain.model import Event
+from events.entrypoints.fastapi.main import app
 from events.service_layer.messagebus import MessageBus
 from events.service_layer.unit_of_work import SqlAlchemyUnitOfWork
 
@@ -37,7 +41,7 @@ def fake_event() -> dict:
     return {
         'name': 'Fake Event',
         'description': 'Fake Event',
-        'event_date': datetime.date.today(),
+        'event_date': date.today(),
         'available_tickets': 10,
         'ticket_price': 3000.15,
     }
@@ -53,7 +57,7 @@ def postgres_container() -> Generator[PostgresContainer]:
 async def postgres_engine(postgres_container: PostgresContainer) -> AsyncGenerator[AsyncEngine]:
     try:
         postgres_url = yarl.URL(postgres_container.get_connection_url()).with_scheme('postgresql+asyncpg')
-        engine = create_async_engine(str(postgres_url), echo=True, future=True)
+        engine = create_async_engine(str(postgres_url), poolclass=NullPool)
         yield engine
     finally:
         await engine.dispose()
@@ -99,3 +103,87 @@ def bus(uow: SqlAlchemyUnitOfWork) -> MessageBus:
     publish = FakeEventPublisher()
     messagebus = MessageBus(uow, publish)
     return messagebus
+
+
+@pytest.fixture
+def fake_events():
+    def event_factory(i):
+        return {
+            'name': f'Event {i}',
+            'description': f'Description {i}',
+            'event_date': date.today() + timedelta(days=i),
+            'available_tickets': abs(1 * i),
+            'ticket_price': (i * 100) + 0.1 * i if i >= 0 else Decimal(f'{abs((i * 100) + 0.1 * i):.2f}'),
+        }
+
+    EventWithTomorrowDateHaveZeroTickets = Event.model_validate(
+        {
+            'name': 'Event tomorrow without tickets',
+            'description': 'Event tomorrow without tickets',
+            'event_date': date.today() + timedelta(days=1),
+            'available_tickets': 0,
+            'ticket_price': 2999.99,
+        }
+    )
+
+    fake_events = [*[Event(**event_factory(i)) for i in range(-2, 0)]]
+    fake_events.append(EventWithTomorrowDateHaveZeroTickets)
+    fake_events.extend([Event.model_validate(event_factory(i)) for i in range(1, 11)])
+
+    return fake_events
+
+
+@pytest.fixture
+async def sqlite_fake_events(uow: SqlAlchemyUnitOfWork, fake_events: list[Event]) -> AsyncGenerator[Event]:
+    async with uow as uow:
+        uow.session.add_all(fake_events)
+        await uow.commit()
+
+    yield fake_events
+
+    async with uow as uow:
+        uow.session.add_all(fake_events)
+        await uow.session.execute(text('DELETE FROM event'))
+        await uow.session.commit()
+
+
+@pytest.fixture
+def pg_uow(postgres_session_factory: async_sessionmaker[AsyncSession]) -> SqlAlchemyUnitOfWork:
+    uow = SqlAlchemyUnitOfWork(postgres_session_factory)
+    return uow
+
+
+@pytest.fixture
+def pg_bus(pg_uow: SqlAlchemyUnitOfWork) -> MessageBus:
+    publish = FakeEventPublisher()
+    messagebus = MessageBus(pg_uow, publish)
+    return messagebus
+
+
+@pytest.fixture
+async def pg_fake_events(pg_uow: SqlAlchemyUnitOfWork, fake_events: list[Event]) -> AsyncGenerator[Event]:
+    async with pg_uow as uow:
+        uow.session.add_all(fake_events)
+        await uow.commit()
+
+    yield fake_events
+
+    async with pg_uow as uow:
+        uow.session.add_all(fake_events)
+        await uow.session.execute(text('DELETE FROM event'))
+        await uow.session.commit()
+
+
+@pytest.fixture
+async def api_client(pg_bus: MessageBus) -> AsyncGenerator[TestClient]:
+    from events.entrypoints.fastapi.dependencies.bus import bus
+
+    async def bus_override():
+        return pg_bus
+
+    app.dependency_overrides[bus] = bus_override
+
+    with TestClient(app, headers={'X-User-Role': 'admin'}) as api_client:
+        yield api_client
+
+    app.dependency_overrides.clear()
