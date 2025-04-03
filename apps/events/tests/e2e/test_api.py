@@ -1,4 +1,4 @@
-from datetime import date, timedelta
+from datetime import datetime, timedelta
 
 import pytest
 from fastapi import status
@@ -31,7 +31,7 @@ class TestForUserRouter:
             assert response.json() == {'detail': 'Not Found'}
 
     class TestGetEvents:
-        def test_return_200_and_tomorrows_events_with_available_tickets_when_no_filters_provided(
+        def test_return_200_and_future_events_with_available_tickets_when_no_filters_provided(
             self, api_client, pg_fake_events
         ):
             response = api_client.get('/events/')
@@ -42,18 +42,18 @@ class TestForUserRouter:
             expected_events = [
                 event.model_dump(mode='json')
                 for event in pg_fake_events
-                if event.event_date == date.today() + timedelta(days=1) and event.available_tickets > 0
+                if event.event_datetime > datetime.now() and event.available_tickets > 0
             ]
 
             assert returned_events == expected_events
 
         @pytest.mark.parametrize(('from_delta', 'to_delta'), [(1, 2), (3, 4), (2, 7)])
         def test_returns_200_and_filtered_events_by_date_range(self, api_client, pg_fake_events, from_delta, to_delta):
-            today = date.today()
-            date_from = today + timedelta(days=from_delta)
-            date_to = today + timedelta(days=to_delta)
+            now = datetime.now()
+            datetime_from = now + timedelta(days=from_delta)
+            datetime_to = now + timedelta(days=to_delta)
 
-            response = api_client.get('/events/', params={'date_from': date_from, 'date_to': date_to})
+            response = api_client.get('/events/', params={'datetime_from': datetime_from, 'datetime_to': datetime_to})
 
             assert response.status_code == status.HTTP_200_OK
 
@@ -61,20 +61,25 @@ class TestForUserRouter:
             expected_events = [
                 event.model_dump(mode='json')
                 for event in pg_fake_events
-                if date_from <= event.event_date <= date_to and event.available_tickets > 0
+                if datetime_from <= event.event_datetime <= datetime_to and event.available_tickets > 0
             ]
 
             assert returned_events == expected_events
 
         @pytest.mark.parametrize(('page', 'items_count'), [(3, 2), (2, 3), (4, 1)])
         def test_returns_paginated_events(self, api_client, pg_fake_events, page, items_count):
-            today = date.today()
-            date_from = today + timedelta(days=1)
-            date_to = today + timedelta(days=9)
+            now = datetime.now()
+            datetime_from = now + timedelta(days=1)
+            datetime_to = now + timedelta(days=9)
 
             response = api_client.get(
                 '/events/',
-                params={'date_from': date_from, 'date_to': date_to, 'page': page, 'items_count': items_count},
+                params={
+                    'datetime_from': datetime_from,
+                    'datetime_to': datetime_to,
+                    'page': page,
+                    'items_count': items_count,
+                },
             )
 
             assert response.status_code == status.HTTP_200_OK
@@ -84,31 +89,32 @@ class TestForUserRouter:
             expected_events = [
                 event.model_dump(mode='json')
                 for event in pg_fake_events
-                if date_from <= event.event_date <= date_to + timedelta(days=1) and event.available_tickets > 0
+                if datetime_from <= event.event_datetime <= datetime_to + timedelta(days=1)
+                and event.available_tickets > 0
             ][(page - 1) * items_count : page * items_count]
 
             assert returned_events == expected_events
 
         @pytest.mark.parametrize(('from_delta', 'to_delta'), [(5, 2), (10, 1)])
         def test_returns_400_if_invalid_date_range(self, api_client, from_delta, to_delta):
-            today = date.today()
-            date_from = today + timedelta(days=from_delta)
-            date_to = today + timedelta(days=to_delta)
+            now = datetime.now()
+            datetime_from = now + timedelta(days=from_delta)
+            datetime_to = now + timedelta(days=to_delta)
 
-            response = api_client.get('/events/', params={'date_from': date_from, 'date_to': date_to})
+            response = api_client.get('/events/', params={'datetime_from': datetime_from, 'datetime_to': datetime_to})
 
             assert response.status_code == status.HTTP_400_BAD_REQUEST
-            assert response.json() == {'detail': 'date_from cannot be greater than date_to'}
+            assert response.json() == {'detail': 'datetime_from cannot be greater than datetime_to'}
 
         @pytest.mark.parametrize(
             ('date_param', 'error_message'),
             [
-                ('date_from', 'date_from cannot be earlier than tomorrow'),
-                ('date_to', 'date_to cannot be earlier than tomorrow'),
+                ('datetime_from', 'datetime_from cannot be earlier than now'),
+                ('datetime_to', 'datetime_to cannot be earlier than now'),
             ],
         )
-        def test_returns_400_if_date_is_less_than_tomorrow(self, api_client, date_param, error_message):
-            invalid_date = date.today()
+        def test_returns_400_if_date_is_less_or_than_now(self, api_client, date_param, error_message):
+            invalid_date = datetime.now() - timedelta(days=1)
 
             params = {date_param: invalid_date}
             response = api_client.get('/events/', params=params)
@@ -117,11 +123,11 @@ class TestForUserRouter:
             assert response.json() == {'detail': error_message}
 
         def test_returns_404_if_no_events_found(self, api_client):
-            today = date.today()
-            date_from = today + timedelta(days=100)
-            date_to = today + timedelta(days=200)
+            now = datetime.now()
+            datetime_from = now + timedelta(days=100)
+            datetime_to = now + timedelta(days=200)
 
-            response = api_client.get('/events/', params={'date_from': date_from, 'date_to': date_to})
+            response = api_client.get('/events/', params={'datetime_from': datetime_from, 'datetime_to': datetime_to})
 
             assert response.status_code == status.HTTP_404_NOT_FOUND
             assert response.json() == {'detail': 'No events found'}

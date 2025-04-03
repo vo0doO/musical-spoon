@@ -7,8 +7,8 @@ pytestmark = pytest.mark.integration
 
 def get_insert_event_query(returning_id=False):
     query = """
-        INSERT INTO event (name, description, event_date, available_tickets, ticket_price)
-        VALUES (:name, :description, :event_date, :available_tickets, :ticket_price);
+        INSERT INTO event (name, description, event_datetime, available_tickets, ticket_price)
+        VALUES (:name, :description, :event_datetime, :available_tickets, :ticket_price);
     """
 
     if returning_id:
@@ -17,14 +17,14 @@ def get_insert_event_query(returning_id=False):
     return text(query)
 
 
-async def test_event_have_btree_idx_on_event_date(postgres_session: AsyncSession):
+async def test_event_have_btree_idx_on_event_datetime(postgres_session: AsyncSession):
     query = text("""
         SELECT a.amname AS index_type
         FROM pg_index i
         JOIN pg_class c ON i.indexrelid = c.oid
         JOIN pg_am a ON c.relam = a.oid
         JOIN pg_class t ON i.indrelid = t.oid
-        WHERE t.relname = 'event' AND c.relname = 'idx_event_date';
+        WHERE t.relname = 'event' AND c.relname = 'idx_event_datetime';
     """)
 
     result = await postgres_session.execute(query)

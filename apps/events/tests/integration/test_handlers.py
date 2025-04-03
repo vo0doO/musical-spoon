@@ -1,5 +1,4 @@
-import datetime
-from datetime import date, timedelta
+from datetime import datetime, timedelta
 
 import pytest
 
@@ -31,7 +30,7 @@ class TestUpdateEvent:
             'id': event.id,
             'name': 'Updated name',
             'description': 'Updated description',
-            'event_date': date.today() + timedelta(days=33),
+            'event_datetime': datetime.now() + timedelta(days=33),
             'available_tickets': 15,
             'ticket_price': 5000.00,
         }
@@ -42,7 +41,7 @@ class TestUpdateEvent:
         assert updated_event['id'] == event.id
         assert updated_event['name'] == update_data['name']
         assert updated_event['description'] == update_data['description']
-        assert updated_event['event_date'] == str(update_data['event_date'])
+        assert updated_event['event_datetime'] == str(update_data['event_datetime'])
         assert updated_event['available_tickets'] == update_data['available_tickets']
         assert updated_event['ticket_price'] == update_data['ticket_price']
 
@@ -80,7 +79,10 @@ class TestDeleteEvent:
         await bus.handle(DeleteEvent(id=event.id))
 
         deleted_event = await select_event_by_name(bus.uow, fake_event['name'])
-        assert deleted_event['deleted_at'] == str(datetime.date.today())
+
+        assert datetime.fromisoformat(deleted_event['deleted_at']).strftime(
+            '%Y-%m-%d %H:%M'
+        ) == datetime.now().strftime('%Y-%m-%d %H:%M')
 
     async def test_delete_event_sended_when_delete_event(self, bus: MessageBus, fake_event: dict):
         event = await bus.handle(CreateEvent(**fake_event))

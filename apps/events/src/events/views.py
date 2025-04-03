@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import datetime
 
 from sqlalchemy import select
 
@@ -13,15 +13,19 @@ async def event(uow: AbstractUnitOfWork, event_id: int) -> Event | None:
 
 
 async def events(
-    uow: AbstractUnitOfWork, date_from: date | None, date_to: date | None, page: int = 1, items_count: int = 20
+    uow: AbstractUnitOfWork,
+    datetime_from: datetime | None,
+    datetime_to: datetime | None,
+    page: int = 1,
+    items_count: int = 20,
 ) -> list[Event]:
     async with uow:
         query = select(Event).where(Event.available_tickets > 0)  # type: ignore
 
-        if date_from:
-            query = query.where(Event.event_date >= date_from)  # type: ignore
-        if date_to:
-            query = query.where(Event.event_date <= date_to)  # type: ignore
+        if datetime_from:
+            query = query.where(Event.event_datetime >= datetime_from)  # type: ignore
+        if datetime_to:
+            query = query.where(Event.event_datetime <= datetime_to)  # type: ignore
 
         offset = (page - 1) * items_count
         query = query.offset(offset).limit(items_count)

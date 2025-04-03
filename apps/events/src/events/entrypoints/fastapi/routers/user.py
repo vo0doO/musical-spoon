@@ -26,7 +26,11 @@ async def get_event(bus: Annotated[MessageBus, Depends(bus)], id: Annotated[int,
 @router.get('/')
 async def get_events(bus: Annotated[MessageBus, Depends(bus)], query: Annotated[EventsQuery, Query()]) -> list[Event]:
     events = await views.events(
-        uow=bus.uow, date_from=query.date_from, date_to=query.date_to, page=query.page, items_count=query.items_count
+        uow=bus.uow,
+        datetime_from=query.datetime_from,
+        datetime_to=query.datetime_to,
+        page=query.page,
+        items_count=query.items_count,
     )
 
     if not events:

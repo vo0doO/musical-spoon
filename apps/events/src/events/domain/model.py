@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import datetime
 
 from pydantic import condecimal, field_serializer, field_validator
 from sqlmodel import CheckConstraint, Field, Index, SQLModel
@@ -7,21 +7,27 @@ from sqlmodel import CheckConstraint, Field, Index, SQLModel
 class EventBase(SQLModel):
     name: str = Field(description='Event name')
     description: str = Field(description='Event description')
-    event_date: date = Field(description='Event date')
+    event_datetime: datetime = Field(description='Event datetime')
     available_tickets: int = Field(description='Number of available tickets', ge=0)
-    ticket_price: condecimal(decimal_places=2) = Field(description='ticket price', gt=0)  # type: ignore
-    deleted_at: date | None = Field(default=None, description='Date when the event was deleted')
+    ticket_price: condecimal(decimal_places=2) = Field(description='Ticket price', gt=0)  # type: ignore
+    deleted_at: datetime | None = Field(default=None, description='Datetime when the event was deleted')
 
-    @field_validator('event_date')
+    @field_validator('event_datetime')
     @classmethod
-    def validate_event_date(cls, value: date) -> date:
-        if value < date.today():
-            raise ValueError('The date of the event cannot be the previous one')
+    def validate_event_datetime(cls, value: datetime) -> datetime:
+        if value < datetime.now():
+            raise ValueError('The datetime of the event cannot be the previous one')
         return value
 
     @field_serializer('ticket_price')
     def serialize_ticket_price(self, value: condecimal(decimal_places=2)):  # type: ignore
         return round(float(value), 2)
+
+    @field_serializer('event_datetime', 'deleted_at')
+    def serialize_event_datetime(self, value: datetime):  # type: ignore
+        if not value:
+            return value
+        return value.strftime('%Y-%m-%dT%H:%M')
 
 
 class Event(EventBase, table=True):
@@ -30,5 +36,5 @@ class Event(EventBase, table=True):
     __table_args__ = (
         CheckConstraint('available_tickets >= 0', name='check_available_tickets_non_negative'),
         CheckConstraint('ticket_price > 0', name='check_ticket_price_positive'),
-        Index('idx_event_date', 'event_date', postgresql_using='btree'),
+        Index('idx_event_datetime', 'event_datetime', postgresql_using='btree'),
     )

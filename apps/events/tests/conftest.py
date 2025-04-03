@@ -1,5 +1,5 @@
 from collections.abc import AsyncGenerator, Generator
-from datetime import date, timedelta
+from datetime import datetime, timedelta
 from decimal import Decimal
 
 import pytest
@@ -41,7 +41,7 @@ def fake_event() -> dict:
     return {
         'name': 'Fake Event',
         'description': 'Fake Event',
-        'event_date': date.today(),
+        'event_datetime': datetime.now() + timedelta(days=1),
         'available_tickets': 10,
         'ticket_price': 3000.15,
     }
@@ -111,7 +111,7 @@ def fake_events():
         return {
             'name': f'Event {i}',
             'description': f'Description {i}',
-            'event_date': date.today() + timedelta(days=i),
+            'event_datetime': datetime.now() + timedelta(days=i),
             'available_tickets': abs(1 * i),
             'ticket_price': (i * 100) + 0.1 * i if i >= 0 else Decimal(f'{abs((i * 100) + 0.1 * i):.2f}'),
         }
@@ -120,7 +120,7 @@ def fake_events():
         {
             'name': 'Event tomorrow without tickets',
             'description': 'Event tomorrow without tickets',
-            'event_date': date.today() + timedelta(days=1),
+            'event_datetime': datetime.now() + timedelta(days=1),
             'available_tickets': 0,
             'ticket_price': 2999.99,
         }

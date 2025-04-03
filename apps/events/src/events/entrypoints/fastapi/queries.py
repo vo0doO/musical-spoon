@@ -1,16 +1,18 @@
-from datetime import date, timedelta
+from datetime import datetime
 
 from fastapi import HTTPException
 from pydantic import BaseModel, Field, model_validator
 
 
-def get_tomorrow():
-    return date.today() + timedelta(days=1)
+def truncated_now():
+    return datetime.now().replace(second=0, microsecond=0)
 
 
 class EventsQuery(BaseModel):
-    date_from: date = Field(default_factory=get_tomorrow, description='Start date filter', examples=['2025-01-01'])
-    date_to: date = Field(default_factory=get_tomorrow, description='End date filter', examples=['2025-12-31'])
+    datetime_from: datetime = Field(
+        default_factory=truncated_now, description='Start datetime filter', examples=['2025-01-01T00:00']
+    )
+    datetime_to: datetime | None = Field(default=None, description='End datetime filter', examples=['2025-12-31T00:00'])
     page: int = Field(default=1, ge=1, description='Page number')
     items_count: int = Field(default=20, ge=1, description='Number of items per page')
 
@@ -18,15 +20,15 @@ class EventsQuery(BaseModel):
 
     @model_validator(mode='after')
     def validate_dates(self):
-        tomorrow = get_tomorrow()
+        now = truncated_now()
 
-        if self.date_from and self.date_from < tomorrow:
-            raise HTTPException(status_code=400, detail='date_from cannot be earlier than tomorrow')
+        if self.datetime_from and self.datetime_from < now:
+            raise HTTPException(status_code=400, detail='datetime_from cannot be earlier than now')
 
-        if self.date_to and self.date_to < tomorrow:
-            raise HTTPException(status_code=400, detail='date_to cannot be earlier than tomorrow')
+        if self.datetime_to and self.datetime_to < now:
+            raise HTTPException(status_code=400, detail='datetime_to cannot be earlier than now')
 
-        if self.date_from and self.date_to and self.date_from > self.date_to:
-            raise HTTPException(status_code=400, detail='date_from cannot be greater than date_to')
+        if self.datetime_from and self.datetime_to and self.datetime_from > self.datetime_to:
+            raise HTTPException(status_code=400, detail='datetime_from cannot be greater than datetime_to')
 
         return self

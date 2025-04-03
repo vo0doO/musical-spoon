@@ -27,19 +27,19 @@ def test_cant_create_event_with_bad_available_tickets_value(fake_event, bad_avai
 
 
 @pytest.mark.parametrize(
-    'yesterday_event_date', [datetime.today() - timedelta(days=1), datetime.today() - timedelta(days=2)]
+    'yesterday_event_datetime', [datetime.now() - timedelta(days=1), datetime.now() - timedelta(days=2)]
 )
-async def test_cant_create_event_with_a_previous_event_date(yesterday_event_date: datetime):
-    with pytest.raises(ValidationError, match='The date of the event cannot be the previous one'):
-        CreateEvent(id=1, event_date=yesterday_event_date.date())
+async def test_cant_create_event_with_a_previous_event_datetime(yesterday_event_datetime: datetime):
+    with pytest.raises(ValidationError, match='The datetime of the event cannot be the previous one'):
+        CreateEvent(id=1, event_datetime=yesterday_event_datetime)
 
 
 @pytest.mark.parametrize(
-    'yesterday_event_date', [datetime.today() - timedelta(days=1), datetime.today() - timedelta(days=2)]
+    'yesterday_event_datetime', [datetime.now() - timedelta(days=1), datetime.now() - timedelta(days=2)]
 )
-async def test_cant_update_event_with_a_previous_event_date(yesterday_event_date: datetime):
-    with pytest.raises(ValidationError, match='The date of the event cannot be the previous one'):
-        UpdateEvent(id=1, event_date=yesterday_event_date.date())
+async def test_cant_update_event_with_a_previous_event_datetime(yesterday_event_datetime: datetime):
+    with pytest.raises(ValidationError, match='The datetime of the event cannot be the previous one'):
+        UpdateEvent(id=1, event_datetime=yesterday_event_datetime)
 
 
 @pytest.mark.parametrize('bad_price', [8132.1123, 12141.123123123, 0, -1])

@@ -15,18 +15,18 @@ def test_can_create_eventbase(fake_event):
 
     assert event.name == fake_event['name']
     assert event.description == fake_event['description']
-    assert event.event_date == fake_event['event_date']
+    assert event.event_datetime == fake_event['event_datetime']
     assert event.available_tickets == fake_event['available_tickets']
     assert float(event.ticket_price) == float(fake_event['ticket_price'])
 
 
 @pytest.mark.parametrize(
-    'yesterday_event_date', [datetime.today() - timedelta(days=1), datetime.today() - timedelta(days=2)]
+    'yesterday_event_datetime', [datetime.now() - timedelta(days=1), datetime.now() - timedelta(days=2)]
 )
-def test_cant_create_an_eventbase_with_a_previous_event_date(fake_event, yesterday_event_date):
-    fake_event['event_date'] = yesterday_event_date.date()
+def test_cant_create_an_eventbase_with_a_previous_event_datetime(fake_event, yesterday_event_datetime):
+    fake_event['event_datetime'] = yesterday_event_datetime
 
-    with pytest.raises(ValidationError, match='The date of the event cannot be the previous one'):
+    with pytest.raises(ValidationError, match='The datetime of the event cannot be the previous one'):
         EventBase(**fake_event)
 
 
