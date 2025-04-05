@@ -79,7 +79,7 @@ async def postgres_session(postgres_session_factory: async_sessionmaker[AsyncSes
 @pytest.fixture
 async def sqlite_engine() -> AsyncGenerator[AsyncEngine]:
     try:
-        engine = create_async_engine('sqlite+aiosqlite:///:memory:', echo=True, future=True)
+        engine = create_async_engine('sqlite+aiosqlite:///:memory:', echo=False, future=True)
         yield engine
     finally:
         await engine.dispose()

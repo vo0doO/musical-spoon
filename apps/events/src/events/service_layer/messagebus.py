@@ -1,12 +1,10 @@
-import logging
 from typing import Any
 
 from events.adapters.eventpublisher import AbstractEventPublisher
 from events.domain import commands, events
+from events.logger import logger
 from events.service_layer.handlers import HANDLERS
 from events.service_layer.unit_of_work import AbstractUnitOfWork
-
-logger = logging.getLogger(__name__)
 
 type Message = commands.Command | events.Event
 
@@ -18,11 +16,11 @@ class MessageBus:
 
     async def handle(self, message: Message) -> Any:
         result = None
-        logger.debug(f'handling {type(message)} {message}')
+        logger.debug(f'handling {type(message).__name__} {message}')
         try:
             handler = HANDLERS[type(message)]
             result = await handler(message, uow=self.uow, publish=self.publish)
             return result
         except Exception as error:
-            logger.exception(f'Exception handling {type(message)} {message}. {error}')
+            logger.exception(f'Exception handling {type(message).__name__} {message}. {error}')
             raise error

@@ -5,7 +5,7 @@ from sqlmodel import SQLModel
 
 from ..settings import POSTGRES_URL
 
-engine = create_async_engine(str(POSTGRES_URL), echo=True, future=True)
+engine = create_async_engine(str(POSTGRES_URL), echo=False, future=True)
 
 
 @asynccontextmanager
