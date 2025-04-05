@@ -2,8 +2,6 @@ from pydantic import BaseModel, Field, condecimal
 
 
 class Event(BaseModel):
-    pass
-
     model_config = {'frozen': True}
 
 

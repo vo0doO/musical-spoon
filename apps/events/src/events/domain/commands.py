@@ -4,8 +4,6 @@ from pydantic import BaseModel, Field, condecimal, field_validator, model_valida
 
 
 class Command(BaseModel):
-    pass
-
     model_config = {'frozen': True}
 
 
@@ -15,7 +13,6 @@ class CreateEvent(Command):
     event_datetime: datetime = Field(description='Event datetime')
     available_tickets: int = Field(description='Number of available tickets', ge=0)
     ticket_price: condecimal(decimal_places=2) = Field(description='ticket price', gt=0)  # type: ignore
-    deleted_at: datetime | None = Field(default=None, description='datetime when the event was deleted')
 
     @field_validator('event_datetime')
     @classmethod
@@ -23,11 +20,6 @@ class CreateEvent(Command):
         if value < datetime.now():
             raise ValueError('The datetime of the event cannot be the previous one')
         return value
-
-
-class DeleteEvent(Command):
-    id: int = Field(description='Event id')
-    deleted_at: datetime = Field(default_factory=datetime.now, description='datetime when the event was deleted')
 
 
 class UpdateEvent(Command):
@@ -51,3 +43,8 @@ class UpdateEvent(Command):
         if value < datetime.now():
             raise ValueError('The datetime of the event cannot be the previous one')
         return value
+
+
+class DeleteEvent(Command):
+    id: int = Field(description='Event id')
+    deleted_at: datetime = Field(default_factory=datetime.now, description='datetime when the event was deleted')
