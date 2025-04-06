@@ -22,8 +22,7 @@ class CreateEvent(Command):
         return value
 
 
-class UpdateEvent(Command):
-    id: int = Field(description='Event id')
+class UpdateEventFields(BaseModel):
     name: str | None = Field(default=None, description='Event name')
     description: str | None = Field(default=None, description='Event description')
     event_datetime: datetime | None = Field(default=None, description='Event datetime')
@@ -40,9 +39,17 @@ class UpdateEvent(Command):
     @field_validator('event_datetime')
     @classmethod
     def validate_event_datetime(cls, value: datetime) -> datetime:
+        if not value:
+            return value
+        if value.tzinfo is not None:
+            raise ValueError('The datetime of the event cannot be have timezone or seconds. Example: 2025-04-05T18:48')
         if value < datetime.now():
             raise ValueError('The datetime of the event cannot be the previous one')
         return value
+
+
+class UpdateEvent(Command, UpdateEventFields):
+    id: int = Field(description='Event id')
 
 
 class DeleteEvent(Command):

@@ -183,7 +183,7 @@ async def api_client(pg_bus: MessageBus) -> AsyncGenerator[TestClient]:
 
     app.dependency_overrides[bus] = bus_override
 
-    with TestClient(app, headers={'X-User-Role': 'admin'}) as api_client:
-        yield api_client
+    api_client = TestClient(app, headers={'X-User-Role': 'admin'})
+    yield api_client
 
     app.dependency_overrides.clear()

@@ -1,5 +1,6 @@
 from collections.abc import Callable
 from datetime import datetime
+from json import JSONDecodeError
 
 from fastapi import Request, Response
 
@@ -14,8 +15,14 @@ async def log_requests(request: Request, call_next: Callable) -> Response:
         'url': str(request.url),
         'headers': dict(request.headers),
         'query_params': dict(request.query_params),
+        'body': {},
         'client': request.client.host if request.client else None,
     }
+
+    try:
+        log_data['body'] = await request.json()
+    except JSONDecodeError:
+        pass
 
     try:
         response = await call_next(request)

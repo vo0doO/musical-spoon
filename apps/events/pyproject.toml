@@ -23,7 +23,7 @@ dev=[
     "pytest-icdiff>=0.9",
     "pytest-randomly>=3.16.0",
     "ruff>=0.9.9",
-    "testcontainers>=4.9.2",
+    "testcontainers>=4.10.0",
     "yarl>=1.18.3",
 ]
 

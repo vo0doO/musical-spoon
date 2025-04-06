@@ -19,7 +19,9 @@ async def create_event(
         return event
 
 
-async def update_event(cmd: commands.UpdateEvent, uow: AbstractUnitOfWork, publish: AbstractEventPublisher) -> None:
+async def update_event(
+    cmd: commands.UpdateEvent, uow: AbstractUnitOfWork, publish: AbstractEventPublisher
+) -> model.Event:
     async with uow:
         event = await uow.session.get(model.Event, cmd.id)
         if not event:
@@ -43,16 +45,21 @@ async def update_event(cmd: commands.UpdateEvent, uow: AbstractUnitOfWork, publi
             )
 
         await uow.commit()
+        return event
 
 
 async def delete_event(cmd: commands.DeleteEvent, uow: AbstractUnitOfWork, publish: AbstractEventPublisher) -> None:
     async with uow:
         event = await uow.session.get(model.Event, cmd.id)
-        if not event:
+
+        if not event or event.deleted_at is not None:
             raise InvalidId(f'Invalid id {cmd.id}')
+
         event.deleted_at = cmd.deleted_at
         uow.session.add(event)
+
         await publish.send_event(events.Deleted(event_id=event.id))
+
         await uow.commit()
 
 

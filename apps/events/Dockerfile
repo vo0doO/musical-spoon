@@ -21,6 +21,6 @@ COPY ./src /app
 
 RUN pip install --no-cache-dir --upgrade ./
 
-CMD ["uvicorn", "events.entrypoints.fastapi.main:app", "--log-level", "error", "--host", "0.0.0.0", "--port", "80"]
+CMD ["uvicorn", "events.entrypoints.fastapi.main:app", "--host", "0.0.0.0", "--port", "80"]
 
 EXPOSE 80
