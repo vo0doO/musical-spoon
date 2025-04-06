@@ -78,9 +78,9 @@ services:
         condition: service_started
     working_dir: /app
     environment:
-      - POSTGRES_USER=${EVENTS_POSTGRES_USER}
-      - POSTGRES_PASSWORD=${EVENTS_POSTGRES_PASSWORD}
-      - POSTGRES_DB=${EVENTS_POSTGRES_DB}
+      - EVENTS_POSTGRES_USER=${EVENTS_POSTGRES_USER}
+      - EVENTS_POSTGRES_PASSWORD=${EVENTS_POSTGRES_PASSWORD}
+      - EVENTS_POSTGRES_DB=${EVENTS_POSTGRES_DB}
     logging:
       driver: json-file
       options:
