@@ -15,14 +15,9 @@ async def log_requests(request: Request, call_next: Callable) -> Response:
         'url': str(request.url),
         'headers': dict(request.headers),
         'query_params': dict(request.query_params),
-        'body': {},
+        'body': await request.body(),
         'client': request.client.host if request.client else None,
     }
-
-    try:
-        log_data['body'] = await request.json()
-    except JSONDecodeError:
-        pass
 
     try:
         response = await call_next(request)

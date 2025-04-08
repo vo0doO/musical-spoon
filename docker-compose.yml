@@ -1,7 +1,7 @@
 services:
   reverse-proxy:
     container_name: reverse-proxy
-    image: traefik:v3.3
+    image: traefik:v3.3.5
     restart: always
     command:
       - --accesslog=true
@@ -74,6 +74,8 @@ services:
     build:
       context: apps/events
     depends_on:
+      auth:
+        condition: service_started
       events_db:
         condition: service_started
     working_dir: /app
