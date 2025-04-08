@@ -19,7 +19,7 @@ from events.service_layer.unit_of_work import SqlAlchemyUnitOfWork
 
 async def create_database(engine):
     if 'event' not in SQLModel.metadata.tables.keys():
-        from src.events.domain.model import Event  # noqa
+        from events.domain.model import Event  # noqa
     async with engine.begin() as conn:
         await conn.run_sync(SQLModel.metadata.create_all)
 

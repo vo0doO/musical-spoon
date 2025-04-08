@@ -1,6 +1,5 @@
 from collections.abc import Callable
 from datetime import datetime
-from json import JSONDecodeError
 
 from fastapi import Request, Response
 
