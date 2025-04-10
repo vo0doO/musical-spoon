@@ -2,15 +2,18 @@ from collections.abc import AsyncGenerator, Generator
 from datetime import datetime, timedelta
 from decimal import Decimal
 
+import aio_pika
 import pytest
 import yarl
+from aio_pika.abc import AbstractChannel, AbstractConnection, AbstractQueue
 from fastapi.testclient import TestClient
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.pool import NullPool
 from sqlmodel import SQLModel, text
-from testcontainers.postgres import PostgresContainer  # type: ignore
+from testcontainers.postgres import PostgresContainer
+from testcontainers.rabbitmq import RabbitMqContainer
 
-from events.adapters.eventpublisher import FakeEventPublisher
+from events.adapters.eventpublisher import FakeEventPublisher, RabbitMQEventPublisher
 from events.domain.model import Event
 from events.entrypoints.fastapi.main import app
 from events.service_layer.messagebus import MessageBus
@@ -50,6 +53,12 @@ def fake_event() -> dict:
 @pytest.fixture(scope='session')
 def postgres_container() -> Generator[PostgresContainer]:
     with PostgresContainer('postgres') as container:
+        yield container
+
+
+@pytest.fixture(scope='session')
+def rabbitmq_container() -> Generator[RabbitMqContainer]:
+    with RabbitMqContainer('rabbitmq') as container:
         yield container
 
 
@@ -148,15 +157,38 @@ async def sqlite_fake_events(uow: SqlAlchemyUnitOfWork, fake_events: list[Event]
 
 
 @pytest.fixture
+def rmq_url(rabbitmq_container: RabbitMqContainer) -> str:
+    params = rabbitmq_container.get_connection_params()
+    rmq_url = f'amqp://{params.credentials.username}:{params.credentials.password}@{params.host}:{params.port}'
+    return rmq_url
+
+
+@pytest.fixture
+def rabbitmq_event_publisher(rmq_url: str) -> RabbitMQEventPublisher:
+    publish = RabbitMQEventPublisher(rmq_url)
+    return publish
+
+
+@pytest.fixture
+async def rabbitmq_events_queue_iter(rmq_url: str) -> AsyncGenerator[AbstractQueue]:
+    connection: AbstractConnection = await aio_pika.connect_robust(rmq_url)
+
+    async with connection:
+        channel: AbstractChannel = await connection.channel()
+        queue: AbstractQueue = await channel.declare_queue('events', auto_delete=True)
+        async with queue.iterator() as queue_iter:
+            yield queue_iter
+
+
+@pytest.fixture
 def pg_uow(postgres_session_factory: async_sessionmaker[AsyncSession]) -> SqlAlchemyUnitOfWork:
     uow = SqlAlchemyUnitOfWork(postgres_session_factory)
     return uow
 
 
 @pytest.fixture
-def pg_bus(pg_uow: SqlAlchemyUnitOfWork) -> MessageBus:
-    publish = FakeEventPublisher()
-    messagebus = MessageBus(pg_uow, publish)
+def pg_bus(pg_uow: SqlAlchemyUnitOfWork, rabbitmq_event_publisher: RabbitMQEventPublisher) -> MessageBus:
+    messagebus = MessageBus(pg_uow, rabbitmq_event_publisher)
     return messagebus
 
 
