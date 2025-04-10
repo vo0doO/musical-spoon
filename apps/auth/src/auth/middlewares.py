@@ -1,9 +1,10 @@
 from collections.abc import Callable
 from datetime import datetime
+from json import JSONDecodeError
 
 from fastapi import Request, Response
 
-from events.logger import logger
+from auth.logger import logger
 
 
 async def log_requests(request: Request, call_next: Callable) -> Response:
