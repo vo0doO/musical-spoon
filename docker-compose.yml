@@ -1,7 +1,7 @@
 services:
   reverse-proxy:
     container_name: reverse-proxy
-    image: traefik:v3.3
+    image: traefik:v3.3.5
     restart: always
     command:
       - --accesslog=true
@@ -74,6 +74,8 @@ services:
     build:
       context: apps/events
     depends_on:
+      auth:
+        condition: service_started
       events_db:
         condition: service_started
     working_dir: /app
@@ -81,6 +83,8 @@ services:
       - EVENTS_POSTGRES_USER=${EVENTS_POSTGRES_USER}
       - EVENTS_POSTGRES_PASSWORD=${EVENTS_POSTGRES_PASSWORD}
       - EVENTS_POSTGRES_DB=${EVENTS_POSTGRES_DB}
+      - RABBITMQ_DEFAULT_USER=${RABBITMQ_DEFAULT_USER}
+      - RABBITMQ_DEFAULT_PASS=${RABBITMQ_DEFAULT_PASS}
     logging:
       driver: json-file
       options:
