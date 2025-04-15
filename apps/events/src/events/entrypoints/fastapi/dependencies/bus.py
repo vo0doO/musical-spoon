@@ -6,8 +6,8 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 from events.adapters.eventpublisher import AbstractEventPublisher, RabbitMQEventPublisher
 from events.service_layer.messagebus import MessageBus
 from events.service_layer.unit_of_work import SqlAlchemyUnitOfWork
+from events.settings import RABBITMQ_URL  # type: ignore
 
-from ..settings import RABBITMQ_URL  # type: ignore
 from .db import session_factory  # type: ignore
 
 

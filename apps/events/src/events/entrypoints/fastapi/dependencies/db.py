@@ -3,7 +3,7 @@ from contextlib import asynccontextmanager
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlmodel import SQLModel
 
-from ..settings import POSTGRES_URL
+from events.settings import POSTGRES_URL
 
 engine = create_async_engine(str(POSTGRES_URL), echo=False, future=True)
 
