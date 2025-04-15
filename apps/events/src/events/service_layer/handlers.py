@@ -37,11 +37,11 @@ async def update_event(
         uow.session.add(event)
 
         if 'ticket_price' in update_data and event.ticket_price != original_ticket_price:
-            await publish.send_event(events.TicketPriceChanged(event_id=event.id, new_price=event.ticket_price))
+            await publish.send_event(events.TicketPriceChanged(event_id=event.id, new_price=event.ticket_price))  # type: ignore
 
         if 'available_tickets' in update_data and event.available_tickets < original_available_tickets:
             await publish.send_event(
-                events.AvailableTicketsDecreased(event_id=event.id, remaining_tickets=event.available_tickets)
+                events.AvailableTicketsDecreased(event_id=event.id, remaining_tickets=event.available_tickets)  # type: ignore
             )
 
         await uow.commit()
@@ -58,7 +58,22 @@ async def delete_event(cmd: commands.DeleteEvent, uow: AbstractUnitOfWork, publi
         event.deleted_at = cmd.deleted_at
         uow.session.add(event)
 
-        await publish.send_event(events.Deleted(event_id=event.id))
+        await publish.send_event(events.Deleted(event_id=event.id))  # type: ignore
+
+        await uow.commit()
+
+
+async def sell_tickets(eve: events.TicketsSold, uow: AbstractUnitOfWork, publish: AbstractEventPublisher) -> None:
+    async with uow:
+        event = await uow.session.get(model.Event, eve.event_id)
+        if not event:
+            raise InvalidId(f'Invalid id {eve.event_id}')
+
+        event.available_tickets = event.available_tickets - eve.tickets_count
+
+        await publish.send_event(
+            events.AvailableTicketsDecreased(event_id=event.id, remaining_tickets=event.available_tickets)  # type: ignore
+        )
 
         await uow.commit()
 
@@ -67,4 +82,5 @@ HANDLERS: dict[type[commands.Command] | type[events.Event], Callable] = {
     commands.CreateEvent: create_event,
     commands.DeleteEvent: delete_event,
     commands.UpdateEvent: update_event,
+    events.TicketsSold: sell_tickets,
 }

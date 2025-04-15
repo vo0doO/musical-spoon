@@ -9,7 +9,7 @@ engine = create_async_engine(str(POSTGRES_URL), echo=False, future=True)
 
 
 @asynccontextmanager
-async def init_database(app):
+async def init_database():
     async with engine.begin() as conn:
         await conn.run_sync(SQLModel.metadata.create_all)
     yield

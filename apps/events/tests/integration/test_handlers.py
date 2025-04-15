@@ -2,7 +2,7 @@ from datetime import datetime, timedelta
 
 import pytest
 
-from events.domain import events
+from events.domain import events, model
 from events.domain.commands import CreateEvent, DeleteEvent, UpdateEvent
 from events.service_layer.handlers import InvalidId
 from events.service_layer.messagebus import MessageBus
@@ -96,3 +96,20 @@ class TestDeleteEvent:
     async def test_cant_delete_non_existent_event(self, bus: MessageBus, fake_event: dict):
         with pytest.raises(InvalidId, match='Invalid id'):
             await bus.handle(DeleteEvent(id=1))
+
+
+class TestSellTickets:
+    async def test_can_sell_tickets(self, bus: MessageBus, sqlite_fake_events: list[model.Event]):
+        event_to_sell_tickets = sqlite_fake_events[-1]
+
+        await bus.handle(events.TicketsSold(event_id=event_to_sell_tickets.id, tickets_count=3))
+
+        async with bus.uow as uow:
+            updated_event = await uow.session.get(model.Event, event_to_sell_tickets.id)
+            assert updated_event.available_tickets == event_to_sell_tickets.available_tickets - 3
+
+    async def test_cant_sell_tickets_with_invalid_id(self, bus: MessageBus):
+        invalid_event_id = 9999
+
+        with pytest.raises(InvalidId, match=f'Invalid id {invalid_event_id}'):
+            await bus.handle(events.TicketsSold(event_id=invalid_event_id, tickets_count=3))
