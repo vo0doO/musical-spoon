@@ -14,9 +14,9 @@ from sqlmodel import SQLModel, text
 from testcontainers.postgres import PostgresContainer
 from testcontainers.rabbitmq import RabbitMqContainer
 
-from events.adapters.eventconsumer import RabbitMQEventConsumer
 from events.adapters.eventpublisher import FakeEventPublisher, RabbitMQEventPublisher
 from events.domain.model import Event
+from events.entrypoints.eventconsumer import RabbitMQEventConsumer
 from events.entrypoints.fastapi.main import app
 from events.service_layer.messagebus import MessageBus
 from events.service_layer.unit_of_work import SqlAlchemyUnitOfWork
