@@ -131,6 +131,8 @@ services:
         condition: service_started
       orders_db:
         condition: service_started
+      rabbitmq:
+        condition: service_healthy
     working_dir: /app
     environment:
       - ORDERS_POSTGRES_USER=${ORDERS_POSTGRES_USER}
