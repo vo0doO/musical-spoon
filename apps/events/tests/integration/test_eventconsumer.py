@@ -4,9 +4,9 @@ import aio_pika
 import pytest
 from _pytest.logging import LogCaptureFixture
 
-from events.adapters.eventconsumer import RabbitMQEventConsumer
 from events.adapters.eventpublisher import RabbitMQEventPublisher
 from events.domain import events, model
+from events.entrypoints.eventconsumer import RabbitMQEventConsumer
 
 pytestmark = pytest.mark.integration
 
@@ -20,6 +20,8 @@ async def test_available_tickets_decreased_when_tickets_sold_event_sent(
 
     tickets_sold_event = events.TicketsSold(event_id=event_to_sell_tickets.id, tickets_count=3)
     await rabbitmq_orders_event_publisher.send_event(tickets_sold_event)
+
+    await asyncio.sleep(1)
 
     async with event_consumer.bus.uow as uow:
         updated_event = await uow.session.get(model.Event, event_to_sell_tickets.id)
@@ -67,5 +69,7 @@ async def test_raises_error_when_raw_event_message_sent_without_required_fields(
         await channel.default_exchange.publish(
             aio_pika.Message(body=event_body), routing_key=rabbitmq_orders_event_publisher.queue_name
         )
+
+    await asyncio.sleep(1)
 
     assert any(expected_error in msg for msg in caplog.messages)

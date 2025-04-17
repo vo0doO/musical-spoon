@@ -8,10 +8,12 @@ pytestmark = pytest.mark.e2e
 async def assert_event_published(queue_iter, expected_message):
     async for message in queue_iter:
         async with message.process():
-            if expected_message['name'] in (message := message.body.decode()):
-                break
+            if expected_message['name'] in (decoded_message := message.body.decode()):
+                deserialize_message = json.loads(decoded_message)
+                if deserialize_message['event_id'] == expected_message['event_id']:
+                    break
 
-    assert expected_message == json.loads(message)
+    assert expected_message == deserialize_message
 
 
 async def test_published_the_deleted_event_if_delete_event(api_client, pg_fake_events, rabbitmq_events_queue_iter):
