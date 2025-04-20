@@ -120,6 +120,59 @@ services:
     networks:
       - events
 
+  orders:
+    container_name: orders
+    image: orders
+    restart: always
+    build:
+      context: apps/orders
+    depends_on:
+      auth:
+        condition: service_started
+      orders_db:
+        condition: service_started
+      rabbitmq:
+        condition: service_healthy
+    working_dir: /app
+    environment:
+      - ORDERS_POSTGRES_USER=${ORDERS_POSTGRES_USER}
+      - ORDERS_POSTGRES_PASSWORD=${ORDERS_POSTGRES_PASSWORD}
+      - ORDERS_POSTGRES_DB=${ORDERS_POSTGRES_DB}
+      - RABBITMQ_DEFAULT_USER=${RABBITMQ_DEFAULT_USER}
+      - RABBITMQ_DEFAULT_PASS=${RABBITMQ_DEFAULT_PASS}
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"
+    networks:
+      - musical-spoon
+      - orders
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.orders.rule=Host(`orders.localhost`)
+      - traefik.http.routers.orders.entryPoints=web
+      - traefik.http.routers.orders.middlewares=forward-auth
+      - traefik.docker.network=musical-spoon
+
+  orders_db:
+    image: postgres:latest
+    container_name: orders_db
+    restart: always
+    environment:
+      - POSTGRES_USER=${ORDERS_POSTGRES_USER}
+      - POSTGRES_PASSWORD=${ORDERS_POSTGRES_PASSWORD}
+      - POSTGRES_DB=${ORDERS_POSTGRES_DB}
+    volumes:
+      - orders_db:/var/lib/postgresql/data
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"
+    networks:
+      - orders
+
   rabbitmq:
     container_name: rabbitmq
     image: rabbitmq:management
@@ -146,6 +199,7 @@ services:
 volumes:
   auth_db:
   events_db:
+  orders_db:
   rabbitmq:
 
 networks:
@@ -157,4 +211,7 @@ networks:
     driver: bridge
   events:
     name: events
+    driver: bridge
+  orders:
+    name: orders
     driver: bridge

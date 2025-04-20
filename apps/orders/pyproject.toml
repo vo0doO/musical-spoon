@@ -1,37 +1,64 @@
-[build-system]
-build-backend = "poetry.core.masonry.api"
-requires = ["poetry-core"]
+[project]
+name="orders"
+version="0.1.0"
+description="Orders microservice"
+readme="README.md"
+requires-python=">=3.13"
+dependencies=[
+    "aio-pika>=9.5.5",
+    "asyncpg>=0.30.0",
+    "fastapi>=0.115.11",
+    "greenlet>=3.1.1",
+    "loguru>=0.7.3",
+    "sqlalchemy>=2.0.40",
+    "uvicorn>=0.34.0",
+]
 
-[tool.poetry]
-authors = [""]
-description = ""
-name = ""
-readme = "README.md"
-version = ""
+[dependency-groups]
+dev=[
+    "aiosqlite>=0.21.0",
+    "httpx>=0.28.1",
+    "mypy>=1.15.0",
+    "pika>=1.3.2",
+    "pytest>=8.3.5",
+    "pytest-asyncio>=0.26.0",
+    "pytest-icdiff>=0.9",
+    "pytest-randomly>=3.16.0",
+    "pytest-repeat>=0.9.4",
+    "pytest-timeout>=2.3.1",
+    "ruff>=0.9.9",
+    "testcontainers>=4.10.0",
+    "yarl>=1.18.3",
+]
 
-[tool.poetry.dependencies]
+[tool.ruff]
+fix=true
+unsafe-fixes=true
+line-length=120
+select=["ALL"]
+ignore=["D1", "D203", "D213", "FA102", "ANN101", "Q000", "PGH003"] 
 
+[tool.ruff.format]
+quote-style="single"
 
-[tool.poetry.group.dev.dependencies]
+[tool.ruff.isort] 
+no-lines-before=["standard-library", "local-folder"]
+known-third-party=[]
+known-local-folder=["whole_app"]
+
+[tool.ruff.extend-per-file-ignores]
+"tests/*.py"=["ANN401", "S101", "S311"]
 
 [tool.pytest.ini_options]
-DJANGO_SETTINGS_MODULE = "core.settings"
-addopts = "--reuse-db"
-env = [
-
+timeout=30
+asyncio_mode="auto"
+asyncio_default_fixture_loop_scope="function"
+asyncio_default_test_loop_scope="function"
+markers=[
+    "unit: marks tests as unit tests",
+    "integration: marks tests as integration tests",
+    "e2e: marks tests as end-to-end tests",
 ]
-filterwarnings = [
-
+testpaths=[
+    "tests"
 ]
-markers = [
-
-]
-python_files = "test*.py"
-
-[tool.tomlsort]
-all = true
-in_place = true
-sort_first = ["tool.poetry"]
-spaces_before_inline_comment = 2
-spaces_indent_inline_array = 4
-trailing_comma_inline_array = true
