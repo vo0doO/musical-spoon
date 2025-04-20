@@ -3,13 +3,13 @@ from contextlib import asynccontextmanager
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlmodel import SQLModel
 
-from ..settings import POSTGRES_URL
+from events.settings import POSTGRES_URL
 
 engine = create_async_engine(str(POSTGRES_URL), echo=False, future=True)
 
 
 @asynccontextmanager
-async def init_database(app):
+async def init_database():
     async with engine.begin() as conn:
         await conn.run_sync(SQLModel.metadata.create_all)
     yield

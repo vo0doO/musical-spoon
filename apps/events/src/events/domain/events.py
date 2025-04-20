@@ -22,8 +22,9 @@ class AvailableTicketsDecreased(Event):
     remaining_tickets: int = Field(ge=0)
 
 
-class TicketSold(Event):
+class TicketsSold(Event):
     event_id: int
+    tickets_count: int
 
 
 class Deleted(Event):

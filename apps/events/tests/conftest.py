@@ -1,3 +1,4 @@
+import asyncio
 from collections.abc import AsyncGenerator, Generator
 from datetime import datetime, timedelta
 from decimal import Decimal
@@ -15,6 +16,7 @@ from testcontainers.rabbitmq import RabbitMqContainer
 
 from events.adapters.eventpublisher import FakeEventPublisher, RabbitMQEventPublisher
 from events.domain.model import Event
+from events.entrypoints.eventconsumer import RabbitMQEventConsumer
 from events.entrypoints.fastapi.main import app
 from events.service_layer.messagebus import MessageBus
 from events.service_layer.unit_of_work import SqlAlchemyUnitOfWork
@@ -170,12 +172,18 @@ def rabbitmq_event_publisher(rmq_url: str) -> RabbitMQEventPublisher:
 
 
 @pytest.fixture
+def rabbitmq_orders_event_publisher(request, rmq_url: str) -> RabbitMQEventPublisher:
+    publish = RabbitMQEventPublisher(rmq_url, queue_name='orders')
+    return publish
+
+
+@pytest.fixture
 async def rabbitmq_events_queue_iter(rmq_url: str) -> AsyncGenerator[AbstractQueue]:
     connection: AbstractConnection = await aio_pika.connect_robust(rmq_url)
 
     async with connection:
         channel: AbstractChannel = await connection.channel()
-        queue: AbstractQueue = await channel.declare_queue('events', auto_delete=True)
+        queue: AbstractQueue = await channel.declare_queue('events', durable=True)
         async with queue.iterator() as queue_iter:
             yield queue_iter
 
@@ -219,3 +227,14 @@ async def api_client(pg_bus: MessageBus) -> AsyncGenerator[TestClient]:
     yield api_client
 
     app.dependency_overrides.clear()
+
+
+@pytest.fixture
+async def event_consumer(bus: MessageBus, rmq_url: str) -> AsyncGenerator[RabbitMQEventConsumer]:
+    consumer = RabbitMQEventConsumer(bus=bus, rabbitmq_url=rmq_url)
+
+    task = asyncio.create_task(consumer.consume())
+
+    yield consumer
+
+    task.cancel()

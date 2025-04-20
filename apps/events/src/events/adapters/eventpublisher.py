@@ -33,7 +33,7 @@ class RabbitMQEventPublisher(AbstractEventPublisher):
 
         async with connection:
             channel = await connection.channel()
-            await channel.declare_queue(self.queue_name, auto_delete=True)
+            await channel.declare_queue(self.queue_name, durable=True)
             yield channel
 
     async def send_event(self, event: events.Event) -> None:
