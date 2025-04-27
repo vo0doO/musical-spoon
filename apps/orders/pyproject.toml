@@ -7,10 +7,11 @@ requires-python=">=3.13"
 dependencies=[
     "aio-pika>=9.5.5",
     "asyncpg>=0.30.0",
+    "bson>=0.5.10",
     "fastapi>=0.115.11",
     "greenlet>=3.1.1",
     "loguru>=0.7.3",
-    "sqlalchemy>=2.0.40",
+    "sqlmodel>=0.0.24",
     "uvicorn>=0.34.0",
 ]
 
@@ -36,7 +37,7 @@ fix=true
 unsafe-fixes=true
 line-length=120
 select=["ALL"]
-ignore=["D1", "D203", "D213", "FA102", "ANN101", "Q000", "PGH003"] 
+ignore=["D1", "D203", "D213", "FA102", "ANN101", "Q000", "PGH003", "A002"] 
 
 [tool.ruff.format]
 quote-style="single"
@@ -47,7 +48,7 @@ known-third-party=[]
 known-local-folder=["whole_app"]
 
 [tool.ruff.extend-per-file-ignores]
-"tests/*.py"=["ANN401", "S101", "S311"]
+"tests/*.py"=["ANN401", "S101", "S311", "ANN"]
 
 [tool.pytest.ini_options]
 timeout=30
