@@ -1,5 +1,3 @@
-from copy import deepcopy
-
 import pytest
 from sqlalchemy import select
 
@@ -39,7 +37,7 @@ async def test_cant_get_order_list_if_does_not_exist_orders_with_tickets_to_this
 
 
 async def test_can_get_multiple_orders_with_tickets_for_same_event(sqlite_repository, fake_orders):
-    expected_orders = deepcopy(fake_orders)
+    expected_orders = [order.model_copy() for order in fake_orders]
 
     new_event_id = 999
 

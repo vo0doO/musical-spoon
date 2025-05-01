@@ -1,5 +1,4 @@
 from collections.abc import AsyncGenerator
-from copy import deepcopy
 
 import pytest
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, async_sessionmaker, create_async_engine
@@ -77,7 +76,7 @@ async def sqlite_session(sqlite_session_factory: async_sessionmaker[AsyncSession
 
 @pytest.fixture
 async def sqlite_fake_orders(sqlite_session: AsyncSession, fake_orders: list[Order]) -> AsyncGenerator[Order]:
-    orders = deepcopy(fake_orders)
+    orders = [order.model_copy() for order in fake_orders]
 
     sqlite_session.add_all(fake_orders)
     await sqlite_session.commit()
