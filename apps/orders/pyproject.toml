@@ -48,7 +48,7 @@ known-third-party=[]
 known-local-folder=["whole_app"]
 
 [tool.ruff.extend-per-file-ignores]
-"tests/*.py"=["ANN401", "S101", "S311", "ANN"]
+"tests/*.py"=["ANN401", "S101", "S311", "ANN", "PLR2004"]
 
 [tool.pytest.ini_options]
 timeout=30
