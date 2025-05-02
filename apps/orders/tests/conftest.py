@@ -1,4 +1,5 @@
 from collections.abc import AsyncGenerator
+from copy import deepcopy
 
 import pytest
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, async_sessionmaker, create_async_engine
@@ -6,6 +7,7 @@ from sqlmodel import SQLModel, text
 
 from orders.adapters.repository import SqlAlshemyRepository
 from orders.domain.model import Order, OrderStatuses, Ticket
+from orders.service_layer.unit_of_work import SqlAlchemyUnitOfWork
 
 
 @pytest.fixture
@@ -38,6 +40,12 @@ def fake_orders() -> list[Order]:
         )
         for i in range(3)
     ]
+
+
+async def select_order_by_id(uow: SqlAlchemyUnitOfWork, order_id) -> Order | None:
+    async with uow:
+        order = await uow.orders.get(order_id)
+        return deepcopy(order)
 
 
 async def create_database(engine: AsyncEngine):
@@ -89,3 +97,8 @@ async def sqlite_fake_orders(sqlite_session: AsyncSession, fake_orders: list[Ord
 @pytest.fixture
 def sqlite_repository(sqlite_session: AsyncSession) -> SqlAlshemyRepository:
     return SqlAlshemyRepository(sqlite_session)
+
+
+@pytest.fixture
+def sqlite_uow(sqlite_session_factory: async_sessionmaker[AsyncSession]) -> SqlAlchemyUnitOfWork:
+    return SqlAlchemyUnitOfWork(sqlite_session_factory)
