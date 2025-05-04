@@ -9,6 +9,8 @@ from orders.domain.model import Order, OrderStatuses, Ticket
 
 class AbstractRepository(Protocol):
     def add(self, order: Order) -> None: ...
+    async def get(self, order_id: int) -> Order | None: ...
+    async def delete(self, order: Order) -> None: ...
     async def get_user_basket(self, user_id: str) -> Order | None: ...
     async def list_by_event_id(self, event_id: int) -> Sequence[Order] | None: ...
 
@@ -20,7 +22,7 @@ class SqlAlshemyRepository:
     def add(self, order: Order) -> None:
         self.session.add(order)
 
-    async def get(self, order_id: Order) -> Order | None:
+    async def get(self, order_id: int) -> Order | None:
         return await self.session.get(Order, order_id)
 
     async def delete(self, order: Order) -> None:
