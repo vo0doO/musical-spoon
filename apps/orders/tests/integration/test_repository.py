@@ -6,20 +6,20 @@ from orders.domain.model import Order, Ticket
 pytestmark = pytest.mark.integration
 
 
-async def test_can_get_user_backet_if_backet_exist_and_has_valid_status(sqlite_repository, sqlite_fake_orders):
-    order = await sqlite_repository.get_user_backet(sqlite_fake_orders[0].user_id)
+async def test_can_get_user_basket_if_basket_exist_and_has_valid_status(sqlite_repository, sqlite_fake_orders):
+    order = await sqlite_repository.get_user_basket(sqlite_fake_orders[0].user_id)
     assert order == sqlite_fake_orders[0]
 
 
-async def test_cant_get_user_backet_if_user_does_not_exist(sqlite_repository, sqlite_fake_orders):
-    order = await sqlite_repository.get_user_backet(sqlite_fake_orders[0].user_id + 'ABC')
+async def test_cant_get_user_basket_if_user_does_not_exist(sqlite_repository, sqlite_fake_orders):
+    order = await sqlite_repository.get_user_basket(sqlite_fake_orders[0].user_id + 'ABC')
     assert order is None
 
 
-async def test_cant_get_user_backet_if_user_order_exist_but_has_invalid_status(sqlite_repository, sqlite_fake_orders):
+async def test_cant_get_user_basket_if_user_order_exist_but_has_invalid_status(sqlite_repository, sqlite_fake_orders):
     invalid_order = sqlite_fake_orders[-1]
 
-    order = await sqlite_repository.get_user_backet(invalid_order.user_id)
+    order = await sqlite_repository.get_user_basket(invalid_order.user_id)
     assert order is None
 
 

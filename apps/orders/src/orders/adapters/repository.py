@@ -9,7 +9,7 @@ from orders.domain.model import Order, OrderStatuses, Ticket
 
 class AbstractRepository(Protocol):
     def add(self, order: Order) -> None: ...
-    async def get_user_backet(self, user_id: str) -> Order | None: ...
+    async def get_user_basket(self, user_id: str) -> Order | None: ...
     async def list_by_event_id(self, event_id: int) -> Sequence[Order] | None: ...
 
 
@@ -29,7 +29,7 @@ class SqlAlshemyRepository:
         if order is not None:
             await self.session.delete(order)
 
-    async def get_user_backet(self, user_id: str) -> Order | None:
+    async def get_user_basket(self, user_id: str) -> Order | None:
         allowed_statuses = [OrderStatuses.CREATE, OrderStatuses.PAYMENT_PENDING]
         stmt = select(Order).where(Order.user_id == user_id, Order.order_status.in_(allowed_statuses))  # type: ignore
         result = await self.session.execute(stmt)
