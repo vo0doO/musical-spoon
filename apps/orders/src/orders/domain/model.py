@@ -41,6 +41,11 @@ class Ticket(SQLModel, table=True):
         Index('idx_ticker_order_id', 'order_id', postgresql_using='hash'),
     )
 
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, Ticket):
+            return False
+        return (self.event_id, self.price, self.refunded) == (other.event_id, other.price, other.refunded)
+
     def refund(self) -> None:
         self.refunded = True
 
@@ -61,7 +66,10 @@ class Order(SQLModel, table=True):
     __table_args__ = (Index('idx_order_user_id', 'user_id', postgresql_using='hash'),)
 
     def update_tickets(self, tickets: list[Ticket]) -> None:
-        self.tickets = tickets
+        self.tickets.clear()
+
+        for ticket in tickets:
+            self.tickets.append(Ticket(event_id=ticket.event_id, price=ticket.price))
 
     def refund_tickets(self, event_ids: list[int]) -> None:
         if self.order_status not in (OrderStatuses.DONE, OrderStatuses.PAYMENT_PENDING):

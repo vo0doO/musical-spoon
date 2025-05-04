@@ -21,7 +21,7 @@ async def test_uow_can_retrive_a_order_and_update_tickets_to_it(sqlite_uow, sqli
 
     async with sqlite_uow:
         order = await sqlite_uow.orders.get(initial_order.id)
-        new_tickets = [Ticket(event_id=999, order_id=order.id, price=5000.00)]
+        new_tickets = [Ticket(event_id=999, price=5000.00)]
         order.update_tickets(new_tickets)
         await sqlite_uow.commit()
 
