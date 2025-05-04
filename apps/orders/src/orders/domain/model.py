@@ -2,7 +2,7 @@ from enum import Enum, auto
 from typing import Annotated
 
 from bson import ObjectId as _ObjectId
-from pydantic import AfterValidator, condecimal, field_serializer
+from pydantic import AfterValidator, PlainSerializer, WithJsonSchema, condecimal, field_serializer
 from sqlmodel import CheckConstraint, Field, Index, Relationship, SQLModel
 
 
@@ -13,7 +13,12 @@ def check_object_id(value: str) -> _ObjectId:
     return _ObjectId(value)
 
 
-ObjectId = Annotated[str, AfterValidator(check_object_id)]
+ObjectId = Annotated[
+    str,
+    AfterValidator(check_object_id),
+    PlainSerializer(lambda x: str(x), return_type=str),
+    WithJsonSchema({'type': 'string'}, mode='serialization'),
+]
 
 
 class OrderStatuses(Enum):
@@ -65,7 +70,3 @@ class Order(SQLModel, table=True):
         for ticket in self.tickets:
             if ticket.event_id in event_ids and not ticket.refunded:
                 ticket.refund()
-
-    @field_serializer('user_id')
-    def serialize_user_id(self, value: ObjectId) -> str:
-        return str(value)
