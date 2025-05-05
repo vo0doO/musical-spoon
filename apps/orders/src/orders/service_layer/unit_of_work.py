@@ -18,6 +18,9 @@ class AbstractUnitOfWork(Protocol, AbstractAsyncContextManager):
 
 
 class SqlAlchemyUnitOfWork:
+    session: AsyncSession
+    orders: AbstractRepository
+
     def __init__(self, session_factory: async_sessionmaker[AsyncSession]) -> None:
         self.session_factory = session_factory
 
