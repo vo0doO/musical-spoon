@@ -1,3 +1,4 @@
+import asyncio
 from datetime import datetime, timedelta
 
 import pytest
@@ -96,6 +97,18 @@ class TestDeleteEvent:
     async def test_cant_delete_non_existent_event(self, bus: MessageBus, fake_event: dict):
         with pytest.raises(InvalidId, match='Invalid id'):
             await bus.handle(DeleteEvent(id=1))
+
+    async def test_delete_event_not_send_if_delete_past_event(self, bus: MessageBus, fake_event: dict):
+        current_datetime = datetime.now() + timedelta(seconds=2)
+        fake_event['event_datetime'] = current_datetime
+
+        event = await bus.handle(CreateEvent(**fake_event))
+
+        await asyncio.sleep(2)
+        await bus.handle(DeleteEvent(id=event.id))
+
+        unexpected_event = events.Deleted(event_id=event.id)
+        assert unexpected_event not in bus.publish.messages
 
 
 class TestSellTickets:

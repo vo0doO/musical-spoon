@@ -1,4 +1,5 @@
 from collections.abc import Callable
+from datetime import datetime
 
 from events.adapters.eventpublisher import AbstractEventPublisher
 from events.domain import commands, events, model
@@ -58,7 +59,8 @@ async def delete_event(cmd: commands.DeleteEvent, uow: AbstractUnitOfWork, publi
         event.deleted_at = cmd.deleted_at
         uow.session.add(event)
 
-        await publish.send_event(events.Deleted(event_id=event.id))  # type: ignore
+        if event.event_datetime > datetime.now():
+            await publish.send_event(events.Deleted(event_id=event.id))  # type: ignore
 
         await uow.commit()
 

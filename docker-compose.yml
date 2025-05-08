@@ -47,7 +47,7 @@ services:
       - traefik.http.routers.auth.rule=Host(`auth.localhost`)
       - traefik.http.routers.auth.entryPoints=web
       - traefik.http.middlewares.forward-auth.forwardauth.address=http://auth/auth
-      - traefik.http.middlewares.forward-auth.forwardauth.authResponseHeaders=X-User-Role
+      - traefik.http.middlewares.forward-auth.forwardauth.authResponseHeaders=X-User-Role,X-User-id
       - traefik.docker.network=musical-spoon
 
   auth_db:
@@ -66,6 +66,8 @@ services:
         max-file: "5"
     networks:
       - auth
+    ports:
+      - 27017:27017
 
   events:
     container_name: events
