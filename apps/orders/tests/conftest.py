@@ -6,7 +6,9 @@ from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, async_sessionmaker
 from sqlmodel import SQLModel, text
 
 from orders.adapters.repository import SqlAlshemyRepository
+from orders.bootstrap import bootstrap
 from orders.domain.model import Order, OrderStatuses, Ticket
+from orders.service_layer.messagebus import MessageBus
 from orders.service_layer.unit_of_work import SqlAlchemyUnitOfWork
 
 
@@ -102,3 +104,8 @@ def sqlite_repository(sqlite_session: AsyncSession) -> SqlAlshemyRepository:
 @pytest.fixture
 def sqlite_uow(sqlite_session_factory: async_sessionmaker[AsyncSession]) -> SqlAlchemyUnitOfWork:
     return SqlAlchemyUnitOfWork(sqlite_session_factory)
+
+
+@pytest.fixture
+def sqlite_bus(sqlite_uow: SqlAlchemyUnitOfWork) -> MessageBus:
+    return bootstrap(sqlite_uow)
