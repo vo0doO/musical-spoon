@@ -1,4 +1,4 @@
-from enum import Enum, auto
+from enum import Enum
 from typing import Annotated
 
 from bson import ObjectId as _ObjectId
@@ -22,9 +22,9 @@ ObjectId = Annotated[
 
 
 class OrderStatuses(Enum):
-    CREATE = auto()
-    PAYMENT_PENDING = auto()
-    DONE = auto()
+    CREATE = 'CREATE'
+    PAYMENT_PENDING = 'PAYMENT_PENDING'
+    DONE = 'DONE'
 
 
 class Ticket(SQLModel, table=True):

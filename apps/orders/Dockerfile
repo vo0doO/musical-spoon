@@ -21,6 +21,6 @@ COPY ./src /app
 
 RUN pip install --no-cache-dir --upgrade ./
 
-CMD ["uvicorn", "orders.main:app", "--host", "0.0.0.0", "--port", "80"]
+CMD ["uvicorn", "orders.entrypoints.fastapi.main:app", "--host", "0.0.0.0", "--port", "80"]
 
 EXPOSE 80

@@ -2,12 +2,14 @@ from collections.abc import AsyncGenerator
 from copy import deepcopy
 
 import pytest
+from fastapi.testclient import TestClient
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, async_sessionmaker, create_async_engine
 from sqlmodel import SQLModel, text
 
 from orders.adapters.repository import SqlAlshemyRepository
 from orders.bootstrap import bootstrap
 from orders.domain.model import Order, OrderStatuses, Ticket
+from orders.entrypoints.fastapi.main import app
 from orders.service_layer.messagebus import MessageBus
 from orders.service_layer.unit_of_work import SqlAlchemyUnitOfWork
 
@@ -109,3 +111,18 @@ def sqlite_uow(sqlite_session_factory: async_sessionmaker[AsyncSession]) -> SqlA
 @pytest.fixture
 def sqlite_bus(sqlite_uow: SqlAlchemyUnitOfWork) -> MessageBus:
     return bootstrap(sqlite_uow)
+
+
+@pytest.fixture
+async def api_client(sqlite_bus: MessageBus) -> AsyncGenerator[TestClient]:
+    from orders.entrypoints.fastapi.dependencies.bus import bus
+
+    async def bus_override():
+        return sqlite_bus
+
+    app.dependency_overrides[bus] = bus_override
+
+    api_client = TestClient(app, headers={'X-User-Id': '67f267cc870d069054169f05'})
+    yield api_client
+
+    app.dependency_overrides.clear()
